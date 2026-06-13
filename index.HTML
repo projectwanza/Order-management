@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<title>Order Management — Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --brand:        #ff5f1f;
+  --brand-dark:   #d94c10;
+  --brand-glow:   rgba(255,95,31,0.18);
+  --ink:          #0c0c14;
+  --ink2:         #3a3a52;
+  --ink3:         #7a7a9a;
+  --canvas:       #f4f4f8;
+  --card:         #ffffff;
+  --card2:        #f9f9fc;
+  --border:       #e4e4ee;
+  --border2:      #d0d0e0;
+  --green:        #10b981;
+  --green-bg:     #ecfdf5;
+  --yellow:       #f59e0b;
+  --yellow-bg:    #fffbeb;
+  --red:          #ef4444;
+  --red-bg:       #fef2f2;
+  --blue:         #3b82f6;
+  --blue-bg:      #eff6ff;
+  --purple:       #8b5cf6;
+  --purple-bg:    #f5f3ff;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --radius-lg:    18px;
+  --shadow-sm:    0 1px 4px rgba(0,0,0,0.06);
+  --shadow-md:    0 4px 20px rgba(0,0,0,0.09);
+  --shadow-lg:    0 12px 48px rgba(0,0,0,0.12);
+  --shadow-xl:    0 24px 80px rgba(0,0,0,0.18);
+  --font:         'Inter', sans-serif;
+  --mono:         'JetBrains Mono', monospace;
+  --sidebar-w:    240px;
+  --topbar-h:     60px;
+  --trans:        0.18s cubic-bezier(.4,0,.2,1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--canvas);color:var(--ink);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:var(--font);outline:none}
+a{text-decoration:none;color:inherit}
+img{display:block;max-width:100%}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* ═══════════════════════════════════════════════════════════════
+   LAYOUT SHELL
+═══════════════════════════════════════════════════════════════ */
+#app{display:flex;min-height:100vh}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;
+  position:sticky;top:0;background:var(--ink);
+  display:flex;flex-direction:column;overflow:hidden;
+  z-index:100;transition:width var(--trans);
+}
+.sidebar-logo{
+  padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.07);
+  display:flex;align-items:center;gap:10px;min-height:var(--topbar-h);
+}
+.sidebar-logo-mark{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--brand),var(--brand-dark));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:#fff;font-weight:800;flex-shrink:0;
+}
+.sidebar-logo-text{font-size:15px;font-weight:700;color:#fff;letter-spacing:-0.3px;line-height:1.2}
+.sidebar-logo-sub{font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.8px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:12px 0}
+.nav-section-label{
+  font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);
+  text-transform:uppercase;letter-spacing:1px;padding:8px 20px 4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:10px 20px;
+  color:rgba(255,255,255,0.55);font-size:13px;font-weight:500;
+  cursor:pointer;border-radius:0;transition:all var(--trans);
+  border-left:3px solid transparent;
+}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,0.06);border-left-color:rgba(255,95,31,0.5)}
+.nav-item.active{color:#fff;background:rgba(255,95,31,0.12);border-left-color:var(--brand)}
+.nav-item i{width:18px;text-align:center;font-size:14px}
+.nav-badge{
+  margin-left:auto;background:var(--brand);color:#fff;
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;min-width:20px;text-align:center;
+}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,0.07)}
+.sidebar-footer-user{display:flex;align-items:center;gap:10px}
+.sidebar-footer-avatar{
+  width:32px;height:32px;border-radius:50%;background:var(--brand);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;
+}
+.sidebar-footer-name{font-size:13px;font-weight:600;color:#fff}
+.sidebar-footer-role{font-size:11px;color:rgba(255,255,255,0.4)}
+
+/* ── Main Area ── */
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{
+  height:var(--topbar-h);background:var(--card);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:12px;padding:0 24px;position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-0.3px}
+.topbar-subtitle{font-size:12px;color:var(--ink3);margin-top:1px}
+.topbar-spacer{flex:1}
+.topbar-btn{
+  display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:600;transition:all var(--trans);cursor:pointer;
+}
+.btn-ghost{background:transparent;color:var(--ink2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--canvas);border-color:var(--border2)}
+.btn-primary{background:var(--brand);color:#fff}
+.btn-primary:hover{background:var(--brand-dark);transform:translateY(-1px);box-shadow:0 4px 14px var(--brand-glow)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#059669}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#dc2626}
+
+.content{flex:1;padding:24px;overflow-y:auto}
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD STATS
+═══════════════════════════════════════════════════════════════ */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 18px 16px;cursor:pointer;transition:all var(--trans);
+}
+.stat-card:hover{border-color:var(--brand);box-shadow:0 4px 18px var(--brand-glow);transform:translateY(-2px)}
+.stat-card.active-filter{border-color:var(--brand);background:var(--brand-glow)}
+.stat-icon{
+  width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:17px;margin-bottom:12px;
+}
+.stat-value{font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-0.5px;line-height:1}
+.stat-label{font-size:12px;color:var(--ink3);margin-top:4px;font-weight:500}
+.stat-delta{font-size:11px;font-weight:600;margin-top:6px}
+.stat-delta.up{color:var(--green)}
+.stat-delta.down{color:var(--red)}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOOLBAR
+═══════════════════════════════════════════════════════════════ */
+.toolbar{
+  display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;
+}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink3);font-size:13px}
+.search-input{
+  width:100%;padding:9px 12px 9px 36px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--canvas);font-size:13px;color:var(--ink);transition:all var(--trans);
+}
+.search-input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px var(--brand-glow)}
+.filter-select{
+  padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--canvas);font-size:13px;color:var(--ink);cursor:pointer;
+}
+.filter-select:focus{border-color:var(--brand);outline:none}
+.toolbar-divider{width:1px;height:28px;background:var(--border)}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLE
+═══════════════════════════════════════════════════════════════ */
+.table-wrap{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;box-shadow:var(--shadow-sm);
+}
+.table-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;border-bottom:1px solid var(--border);
+}
+.table-title{font-size:14px;font-weight:700;color:var(--ink)}
+.table-actions{display:flex;align-items:center;gap:8px}
+table{width:100%;border-collapse:collapse}
+thead th{
+  padding:10px 14px;text-align:left;font-size:11px;font-weight:700;
+  color:var(--ink3);text-transform:uppercase;letter-spacing:0.6px;
+  background:var(--card2);border-bottom:1px solid var(--border);white-space:nowrap;
+}
+thead th.check-col{width:40px}
+tbody tr{border-bottom:1px solid var(--border);transition:background var(--trans)}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--canvas)}
+tbody td{padding:12px 14px;font-size:13px;color:var(--ink2);vertical-align:middle}
+tbody td.check-col{padding:12px 14px}
+
+/* ── Inline Checkbox ── */
+.custom-check{
+  width:16px;height:16px;border:2px solid var(--border2);border-radius:4px;
+  cursor:pointer;appearance:none;-webkit-appearance:none;transition:all var(--trans);flex-shrink:0;
+}
+.custom-check:checked{background:var(--brand);border-color:var(--brand);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 9'%3E%3Cpath d='M1 4l3.5 3.5L11 1' stroke='%23fff' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:center}
+
+/* ── Order ID ── */
+.order-id{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--brand)}
+.order-date{font-size:12px;color:var(--ink3);margin-top:2px}
+
+/* ── Customer Cell ── */
+.cust-name{font-weight:600;color:var(--ink);font-size:13px}
+.cust-phone{font-size:11px;color:var(--ink3);margin-top:2px;font-family:var(--mono)}
+.cust-wallet{font-size:10px;color:var(--purple);font-family:var(--mono);margin-top:2px}
+
+/* ── Role Badge ── */
+.role-badge{
+  display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
+  border-radius:99px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;
+}
+.role-public{background:#eff6ff;color:#2563eb}
+.role-retailer{background:#f0fdf4;color:#16a34a}
+.role-distributor{background:#fef9c3;color:#a16207}
+.role-super{background:#fdf4ff;color:#7e22ce}
+
+/* ── Product Type Badge ── */
+.type-badge{
+  display:inline-flex;align-items:center;gap:3px;padding:2px 7px;
+  border-radius:6px;font-size:10px;font-weight:600;
+}
+.type-normal{background:#f3f4f6;color:#374151}
+.type-glass{background:#e0f2fe;color:#0369a1}
+.type-cover{background:#fce7f3;color:#be185d}
+.type-others{background:#fff7ed;color:#c2410c}
+.type-mixed{background:#f5f3ff;color:#6d28d9}
+
+/* ── Status Badge ── */
+.status-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+  border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap;
+}
+.status-badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.st-pending{background:#fffbeb;color:#b45309}.st-pending::before{background:#f59e0b}
+.st-confirmed{background:#eff6ff;color:#1d4ed8}.st-confirmed::before{background:#3b82f6}
+.st-processing{background:#f0f9ff;color:#075985}.st-processing::before{background:#0ea5e9}
+.st-packed{background:#f0fdf4;color:#15803d}.st-packed::before{background:#22c55e}
+.st-ready{background:#ecfdf5;color:#065f46}.st-ready::before{background:#10b981}
+.st-shipped{background:#faf5ff;color:#6b21a8}.st-shipped::before{background:#a855f7}
+.st-out{background:#fdf4ff;color:#86198f}.st-out::before{background:#d946ef}
+.st-delivered{background:#dcfce7;color:#14532d}.st-delivered::before{background:#16a34a}
+.st-cancelled{background:#fef2f2;color:#b91c1c}.st-cancelled::before{background:#ef4444}
+.st-returned{background:#fff7ed;color:#9a3412}.st-returned::before{background:#f97316}
+.st-refunded{background:#f5f5f5;color:#525252}.st-refunded::before{background:#737373}
+
+/* ── Payment Badge ── */
+.pay-badge{
+  display:inline-flex;align-items:center;gap:4px;padding:3px 8px;
+  border-radius:6px;font-size:11px;font-weight:600;
+}
+.pay-cod{background:#fff7ed;color:#c2410c}
+.pay-wallet{background:#f5f3ff;color:#7c3aed}
+.pay-online{background:#eff6ff;color:#1d4ed8}
+
+/* ── Amount ── */
+.amount-cell{font-weight:700;font-size:13px;color:var(--ink);font-family:var(--mono)}
+.amount-sub{font-size:11px;color:var(--ink3);font-weight:400;font-family:var(--font)}
+
+/* ── Action Buttons ── */
+.action-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:var(--radius-sm);font-size:13px;
+  transition:all var(--trans);cursor:pointer;
+}
+.action-view{background:var(--blue-bg);color:var(--blue)}
+.action-view:hover{background:var(--blue);color:#fff}
+.action-edit{background:var(--yellow-bg);color:var(--yellow)}
+.action-edit:hover{background:var(--yellow);color:#fff}
+.action-print{background:var(--canvas);color:var(--ink3)}
+.action-print:hover{background:var(--border);color:var(--ink)}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGINATION
+═══════════════════════════════════════════════════════════════ */
+.pagination{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;border-top:1px solid var(--border);
+}
+.pagination-info{font-size:12px;color:var(--ink3)}
+.pagination-btns{display:flex;align-items:center;gap:4px}
+.page-btn{
+  min-width:32px;height:32px;padding:0 8px;border-radius:var(--radius-sm);
+  font-size:12px;font-weight:600;transition:all var(--trans);cursor:pointer;
+  background:transparent;color:var(--ink2);border:1px solid var(--border);
+}
+.page-btn:hover:not(:disabled){background:var(--canvas);border-color:var(--border2)}
+.page-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.page-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* ═══════════════════════════════════════════════════════════════
+   BULK ACTIONS BAR
+═══════════════════════════════════════════════════════════════ */
+.bulk-bar{
+  display:none;align-items:center;gap:10px;
+  background:var(--ink);color:#fff;padding:12px 18px;border-radius:var(--radius);
+  margin-bottom:14px;animation:slideDown 0.2s ease;
+}
+.bulk-bar.show{display:flex}
+.bulk-count{font-weight:700;font-size:13px}
+.bulk-spacer{flex:1}
+.bulk-actions-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(12,12,20,0.65);z-index:500;
+  display:flex;align-items:flex-start;justify-content:center;padding:20px;
+  overflow-y:auto;opacity:0;pointer-events:none;transition:opacity 0.2s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--card);border-radius:var(--radius-lg);width:100%;max-width:860px;
+  box-shadow:var(--shadow-xl);transform:translateY(20px);transition:transform 0.25s cubic-bezier(.34,1.56,.64,1);
+  margin:auto;
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-header{
+  display:flex;align-items:center;gap:14px;padding:20px 24px;
+  border-bottom:1px solid var(--border);
+}
+.modal-icon{
+  width:44px;height:44px;border-radius:12px;background:var(--brand-glow);
+  display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--brand);flex-shrink:0;
+}
+.modal-title{font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-0.3px}
+.modal-subtitle{font-size:12px;color:var(--ink3);margin-top:2px}
+.modal-close{
+  margin-left:auto;width:34px;height:34px;border-radius:var(--radius-sm);
+  background:var(--canvas);color:var(--ink3);font-size:16px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all var(--trans);
+}
+.modal-close:hover{background:var(--border);color:var(--ink)}
+.modal-body{padding:24px;max-height:80vh;overflow-y:auto}
+.modal-footer{
+  display:flex;align-items:center;gap:10px;justify-content:flex-end;
+  padding:16px 24px;border-top:1px solid var(--border);
+}
+
+/* ── Modal Sections ── */
+.modal-section{margin-bottom:24px}
+.modal-section-title{
+  font-size:12px;font-weight:700;color:var(--ink3);text-transform:uppercase;
+  letter-spacing:0.8px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);
+}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
+.info-item{}
+.info-label{font-size:11px;color:var(--ink3);font-weight:500;margin-bottom:3px}
+.info-value{font-size:13px;font-weight:600;color:var(--ink)}
+.info-value.mono{font-family:var(--mono);font-size:12px;color:var(--brand)}
+
+/* ── Order Items Table in Modal ── */
+.items-table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden}
+.items-table th{padding:9px 12px;background:var(--card2);font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:0.5px;text-align:left;border-bottom:1px solid var(--border)}
+.items-table td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border);color:var(--ink2)}
+.items-table tr:last-child td{border-bottom:none}
+.items-table .item-name{font-weight:600;color:var(--ink)}
+.items-table .item-variant{font-size:11px;color:var(--ink3);margin-top:2px}
+
+/* ── Totals Summary ── */
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)}
+.total-row:last-child{border-bottom:none;padding-top:12px;font-size:15px;font-weight:800;color:var(--ink)}
+.total-label{font-size:13px;color:var(--ink2)}
+.total-value{font-size:13px;font-weight:600;color:var(--ink);font-family:var(--mono)}
+.totals-box{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px}
+
+/* ── Status Update Section ── */
+.status-update-wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.status-select-lg{
+  flex:1;min-width:200px;padding:10px 14px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:13px;font-weight:600;color:var(--ink);background:var(--canvas);cursor:pointer;
+}
+.status-select-lg:focus{border-color:var(--brand);outline:none;box-shadow:0 0 0 3px var(--brand-glow)}
+
+/* ── Shipping Form ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:12px;font-weight:600;color:var(--ink2)}
+.form-input{
+  padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:13px;color:var(--ink);background:var(--canvas);transition:all var(--trans);
+}
+.form-input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px var(--brand-glow)}
+.form-textarea{resize:vertical;min-height:70px}
+
+/* ── Timeline ── */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--border)}
+.tl-item{position:relative;margin-bottom:16px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{
+  position:absolute;left:-24px;top:3px;width:14px;height:14px;border-radius:50%;
+  border:2px solid var(--card);box-shadow:0 0 0 2px var(--border);background:var(--border2);
+}
+.tl-dot.active{background:var(--brand);box-shadow:0 0 0 2px var(--brand-glow),0 0 0 4px rgba(255,95,31,0.1)}
+.tl-dot.success{background:var(--green);box-shadow:0 0 0 2px var(--green-bg)}
+.tl-dot.danger{background:var(--red);box-shadow:0 0 0 2px var(--red-bg)}
+.tl-status{font-size:13px;font-weight:600;color:var(--ink)}
+.tl-time{font-size:11px;color:var(--ink3);margin-top:2px}
+.tl-desc{font-size:12px;color:var(--ink3);margin-top:4px}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG MODAL (setup)
+═══════════════════════════════════════════════════════════════ */
+.config-modal{max-width:520px}
+.config-steps{display:flex;flex-direction:column;gap:14px}
+.config-step{display:flex;gap:14px;align-items:flex-start}
+.step-num{
+  width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;
+  font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;
+}
+.step-body{}
+.step-title{font-size:13px;font-weight:700;color:var(--ink)}
+.step-desc{font-size:12px;color:var(--ink3);margin-top:3px;line-height:1.5}
+.config-url-display{
+  background:var(--ink);color:#fff;padding:12px 16px;border-radius:var(--radius-sm);
+  font-family:var(--mono);font-size:12px;word-break:break-all;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px;
+}
+.copy-btn{
+  background:rgba(255,255,255,0.15);border:none;color:#fff;padding:4px 10px;border-radius:5px;
+  font-size:11px;cursor:pointer;white-space:nowrap;transition:all var(--trans);
+}
+.copy-btn:hover{background:rgba(255,255,255,0.25)}
+
+/* ── URL Input ── */
+.url-input-wrap{position:relative;margin-top:6px}
+.url-input{
+  width:100%;padding:10px 14px;border:2px solid var(--border2);border-radius:var(--radius-sm);
+  font-family:var(--mono);font-size:13px;color:var(--ink);background:var(--canvas);
+  transition:all var(--trans);
+}
+.url-input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px var(--brand-glow)}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUPPORT PANEL
+═══════════════════════════════════════════════════════════════ */
+.support-ticket{
+  border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px;
+  margin-bottom:10px;background:var(--card2);transition:border-color var(--trans);
+}
+.support-ticket:hover{border-color:var(--brand)}
+.ticket-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.ticket-id{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--brand)}
+.ticket-user{font-weight:600;font-size:13px;color:var(--ink)}
+.ticket-msg{font-size:13px;color:var(--ink2);line-height:1.5}
+.ticket-time{font-size:11px;color:var(--ink3);margin-top:6px}
+
+/* ═══════════════════════════════════════════════════════════════
+   LOADING STATES
+═══════════════════════════════════════════════════════════════ */
+.skeleton{background:linear-gradient(90deg,var(--border) 25%,var(--canvas) 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.loader-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px}
+.loader-spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader-text{font-size:13px;color:var(--ink3);font-weight:500}
+
+/* ═══════════════════════════════════════════════════════════════
+   EMPTY STATE
+═══════════════════════════════════════════════════════════════ */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:12px}
+.empty-icon{font-size:48px;opacity:0.25}
+.empty-title{font-size:15px;font-weight:700;color:var(--ink)}
+.empty-desc{font-size:13px;color:var(--ink3);text-align:center;max-width:320px}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════════ */
+#toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--radius);
+  background:var(--ink);color:#fff;font-size:13px;font-weight:500;
+  box-shadow:var(--shadow-lg);animation:toastIn 0.25s cubic-bezier(.34,1.56,.64,1);min-width:260px;max-width:380px;
+}
+.toast.success{background:#065f46}
+.toast.error{background:#7f1d1d}
+.toast.warning{background:#78350f}
+.toast i{font-size:15px;flex-shrink:0}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast-out{animation:toastOut 0.2s ease forwards}
+@keyframes toastOut{to{opacity:0;transform:translateX(20px)}}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE HAMBURGER
+═══════════════════════════════════════════════════════════════ */
+.hamburger{display:none;align-items:center;justify-content:center;width:36px;height:36px;
+  background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius-sm);cursor:pointer}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99}
+
+/* ═══════════════════════════════════════════════════════════════
+   EXPORT DROPDOWN
+═══════════════════════════════════════════════════════════════ */
+.dropdown-wrap{position:relative}
+.dropdown-menu{
+  position:absolute;top:calc(100% + 6px);right:0;background:var(--card);
+  border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-md);
+  min-width:180px;z-index:200;overflow:hidden;
+  opacity:0;pointer-events:none;transform:translateY(-6px);transition:all 0.15s;
+}
+.dropdown-wrap.open .dropdown-menu{opacity:1;pointer-events:all;transform:translateY(0)}
+.dropdown-item{
+  display:flex;align-items:center;gap:9px;padding:10px 14px;font-size:13px;
+  color:var(--ink2);cursor:pointer;transition:background var(--trans);
+}
+.dropdown-item:hover{background:var(--canvas);color:var(--ink)}
+.dropdown-item i{width:16px;color:var(--ink3)}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════════ */
+@media(max-width:900px){
+  .sidebar{position:fixed;left:-100%;top:0;height:100%;z-index:100;transition:left var(--trans)}
+  .sidebar.open{left:0}
+  .sidebar-overlay{display:block}
+  .hamburger{display:flex}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:repeat(2,1fr)}
+  .table-wrap{overflow-x:auto}
+  table{min-width:900px}
+}
+@media(max-width:560px){
+  .content{padding:14px}
+  .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .toolbar{padding:10px 12px;gap:8px}
+  .modal-body{padding:16px}
+  .modal-header{padding:16px}
+}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:4px;padding:4px;background:var(--canvas);border-radius:var(--radius-sm);margin-bottom:20px;overflow-x:auto}
+.tab{
+  padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;
+  color:var(--ink3);cursor:pointer;transition:all var(--trans);white-space:nowrap;
+}
+.tab:hover{color:var(--ink);background:var(--card)}
+.tab.active{background:var(--card);color:var(--brand);box-shadow:var(--shadow-sm)}
+
+/* ── Panel ── */
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── Alert Banner ── */
+.alert-banner{
+  display:flex;align-items:center;gap:12px;padding:12px 18px;border-radius:var(--radius);
+  margin-bottom:18px;font-size:13px;
+}
+.alert-info{background:var(--blue-bg);color:#1e40af;border:1px solid #bfdbfe}
+.alert-info i{color:var(--blue)}
+
+/* ── Quick Status Dropdown ── */
+.quick-status{
+  padding:5px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);
+  font-size:12px;font-weight:600;color:var(--ink);background:var(--canvas);cursor:pointer;
+}
+
+/* ── Wallet display ── */
+.wallet-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+  background:var(--purple-bg);color:var(--purple);border-radius:99px;font-size:12px;font-weight:700;
+}
+.cashback-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+  background:var(--green-bg);color:var(--green);border-radius:99px;font-size:12px;font-weight:700;
+}
+
+/* ── Summary cards in modal ── */
+.order-summary-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.summary-card{
+  background:var(--canvas);border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:12px 14px;
+}
+.summary-card-label{font-size:11px;color:var(--ink3);font-weight:500;margin-bottom:4px}
+.summary-card-value{font-size:16px;font-weight:800;color:var(--ink)}
+</style>
+</head>
+<body>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
+
+<!-- Setup Modal -->
+<div class="modal-overlay" id="setupModal">
+  <div class="modal config-modal">
+    <div class="modal-header">
+      <div class="modal-icon"><i class="fa-solid fa-gear"></i></div>
+      <div>
+        <div class="modal-title">Connect to Your Apps Script</div>
+        <div class="modal-subtitle">One-time configuration — takes 30 seconds</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="config-steps">
+        <div class="config-step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">Get your Apps Script Deployment URL</div>
+            <div class="step-desc">Go to your Google Apps Script project → Deploy → Manage Deployments → Copy the Web App URL</div>
+          </div>
+        </div>
+        <div class="config-step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <div class="step-title">Paste it below</div>
+            <div class="step-desc">The URL ends with <code style="background:var(--canvas);padding:1px 5px;border-radius:4px;font-size:11px">/exec</code></div>
+            <div class="url-input-wrap">
+              <input class="url-input" id="scriptUrlInput" type="url" placeholder="https://script.google.com/macros/s/YOUR_ID/exec"/>
+            </div>
+          </div>
+        </div>
+        <div class="config-step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <div class="step-title">Enter Admin Credentials</div>
+            <div class="step-desc">Same credentials you use to log into your billing software</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+              <input class="form-input" id="adminEmail" type="email" placeholder="Admin email"/>
+              <input class="form-input" id="adminPwd" type="password" placeholder="Password"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="topbar-btn btn-primary" id="saveConfigBtn" onclick="saveConfig()">
+        <i class="fa-solid fa-plug"></i> Connect & Load Orders
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar Overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- App -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-mark">OM</div>
+      <div>
+        <div class="sidebar-logo-text">OrderMgr</div>
+        <div class="sidebar-logo-sub">Admin Panel</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <div class="nav-item active" onclick="showPanel('dashboard')">
+        <i class="fa-solid fa-chart-pie"></i> Dashboard
+      </div>
+      <div class="nav-section-label">Orders</div>
+      <div class="nav-item" onclick="showPanel('orders')">
+        <i class="fa-solid fa-box-open"></i> All Orders
+        <span class="nav-badge" id="navPendingCount">0</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('orders');applyStatusFilter('pending')">
+        <i class="fa-solid fa-clock"></i> Pending
+      </div>
+      <div class="nav-item" onclick="showPanel('orders');applyStatusFilter('processing')">
+        <i class="fa-solid fa-gear"></i> Processing
+      </div>
+      <div class="nav-item" onclick="showPanel('orders');applyStatusFilter('shipped')">
+        <i class="fa-solid fa-truck"></i> Shipped
+      </div>
+      <div class="nav-item" onclick="showPanel('orders');applyStatusFilter('delivered')">
+        <i class="fa-solid fa-circle-check"></i> Delivered
+      </div>
+      <div class="nav-item" onclick="showPanel('orders');applyStatusFilter('cancelled')">
+        <i class="fa-solid fa-ban"></i> Cancelled
+      </div>
+      <div class="nav-section-label">Management</div>
+      <div class="nav-item" onclick="showPanel('shipping')">
+        <i class="fa-solid fa-shipping-fast"></i> Shipping
+      </div>
+      <div class="nav-item" onclick="showPanel('support')">
+        <i class="fa-solid fa-headset"></i> Support
+      </div>
+      <div class="nav-section-label">Settings</div>
+      <div class="nav-item" onclick="openSetupModal()">
+        <i class="fa-solid fa-plug"></i> API Config
+      </div>
+      <div class="nav-item" onclick="refreshAll()">
+        <i class="fa-solid fa-rotate"></i> Refresh Data
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-user">
+        <div class="sidebar-footer-avatar" id="avatarText">A</div>
+        <div>
+          <div class="sidebar-footer-name" id="adminName">Admin</div>
+          <div class="sidebar-footer-role">Order Manager</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- Topbar -->
+    <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        <div class="topbar-subtitle" id="topbarSub">Order Management System</div>
+      </div>
+      <div class="topbar-spacer"></div>
+      <button class="topbar-btn btn-ghost" onclick="refreshAll()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+      <div class="dropdown-wrap" id="exportDropdown">
+        <button class="topbar-btn btn-ghost" onclick="toggleDropdown('exportDropdown')">
+          <i class="fa-solid fa-download"></i> Export <i class="fa-solid fa-chevron-down" style="font-size:10px"></i>
+        </button>
+        <div class="dropdown-menu">
+          <div class="dropdown-item" onclick="exportCSV();closeDropdown('exportDropdown')"><i class="fa-solid fa-file-csv"></i> Export as CSV</div>
+          <div class="dropdown-item" onclick="exportJSON();closeDropdown('exportDropdown')"><i class="fa-solid fa-file-code"></i> Export as JSON</div>
+          <div class="dropdown-item" onclick="printOrders();closeDropdown('exportDropdown')"><i class="fa-solid fa-print"></i> Print Orders</div>
+        </div>
+      </div>
+      <button class="topbar-btn btn-primary" onclick="openSetupModal()" id="connectBtn">
+        <i class="fa-solid fa-plug"></i> <span id="connectBtnText">Connect API</span>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- ══ DASHBOARD PANEL ══ -->
+      <div class="panel active" id="panel-dashboard">
+        <div class="alert-banner alert-info" id="notConfiguredBanner">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Connect your Apps Script API to load live order data. Click <strong>Connect API</strong> in the top right.</span>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card" onclick="showPanel('orders');applyStatusFilter('')">
+            <div class="stat-icon" style="background:#fff0ea;color:var(--brand)"><i class="fa-solid fa-box-open"></i></div>
+            <div class="stat-value" id="st-total">—</div>
+            <div class="stat-label">Total Orders</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');applyStatusFilter('pending')">
+            <div class="stat-icon" style="background:var(--yellow-bg);color:var(--yellow)"><i class="fa-solid fa-clock"></i></div>
+            <div class="stat-value" id="st-pending">—</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');applyStatusFilter('processing')">
+            <div class="stat-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fa-solid fa-gear"></i></div>
+            <div class="stat-value" id="st-processing">—</div>
+            <div class="stat-label">Processing</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');applyStatusFilter('packed')">
+            <div class="stat-icon" style="background:var(--green-bg);color:var(--green)"><i class="fa-solid fa-boxes-stacked"></i></div>
+            <div class="stat-value" id="st-packed">—</div>
+            <div class="stat-label">Packed</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');applyStatusFilter('shipped')">
+            <div class="stat-icon" style="background:var(--purple-bg);color:var(--purple)"><i class="fa-solid fa-truck"></i></div>
+            <div class="stat-value" id="st-shipped">—</div>
+            <div class="stat-label">Shipped</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');applyStatusFilter('delivered')">
+            <div class="stat-icon" style="background:var(--green-bg);color:var(--green)"><i class="fa-solid fa-circle-check"></i></div>
+            <div class="stat-value" id="st-delivered">—</div>
+            <div class="stat-label">Delivered</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');applyStatusFilter('cancelled')">
+            <div class="stat-icon" style="background:var(--red-bg);color:var(--red)"><i class="fa-solid fa-ban"></i></div>
+            <div class="stat-value" id="st-cancelled">—</div>
+            <div class="stat-label">Cancelled</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');applyStatusFilter('returned')">
+            <div class="stat-icon" style="background:#fff7ed;color:#f97316"><i class="fa-solid fa-rotate-left"></i></div>
+            <div class="stat-value" id="st-returned">—</div>
+            <div class="stat-label">Returned</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');filterPayMethod('cod')">
+            <div class="stat-icon" style="background:#fff7ed;color:#c2410c"><i class="fa-solid fa-money-bill-wave"></i></div>
+            <div class="stat-value" id="st-cod">—</div>
+            <div class="stat-label">COD Orders</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');filterPayMethod('wallet')">
+            <div class="stat-icon" style="background:var(--purple-bg);color:var(--purple)"><i class="fa-solid fa-wallet"></i></div>
+            <div class="stat-value" id="st-wallet">—</div>
+            <div class="stat-label">Wallet Orders</div>
+          </div>
+          <div class="stat-card" onclick="showPanel('orders');filterPayMethod('online')">
+            <div class="stat-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fa-solid fa-credit-card"></i></div>
+            <div class="stat-value" id="st-online">—</div>
+            <div class="stat-label">Online Orders</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:var(--green-bg);color:var(--green)"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            <div class="stat-value" id="st-revenue">—</div>
+            <div class="stat-label">Total Revenue</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:var(--brand-glow);color:var(--brand)"><i class="fa-solid fa-calendar-day"></i></div>
+            <div class="stat-value" id="st-today">—</div>
+            <div class="stat-label">Today's Orders</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:var(--blue-bg);color:var(--blue)"><i class="fa-solid fa-calendar-days"></i></div>
+            <div class="stat-value" id="st-month">—</div>
+            <div class="stat-label">This Month</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ ORDERS PANEL ══ -->
+      <div class="panel" id="panel-orders">
+
+        <!-- Bulk Actions Bar -->
+        <div class="bulk-bar" id="bulkBar">
+          <i class="fa-solid fa-check-double" style="color:var(--brand)"></i>
+          <span class="bulk-count"><span id="bulkCount">0</span> orders selected</span>
+          <div class="bulk-spacer"></div>
+          <div class="bulk-actions-wrap">
+            <button class="topbar-btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,0.2)" onclick="bulkAction('confirmed')"><i class="fa-solid fa-check"></i> Confirm</button>
+            <button class="topbar-btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,0.2)" onclick="bulkAction('processing')"><i class="fa-solid fa-gear"></i> Processing</button>
+            <button class="topbar-btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,0.2)" onclick="bulkAction('packed')"><i class="fa-solid fa-box"></i> Packed</button>
+            <button class="topbar-btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,0.2)" onclick="bulkAction('shipped')"><i class="fa-solid fa-truck"></i> Shipped</button>
+            <button class="topbar-btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,0.2)" onclick="bulkAction('delivered')"><i class="fa-solid fa-circle-check"></i> Delivered</button>
+            <button class="topbar-btn btn-danger" onclick="bulkAction('cancelled')"><i class="fa-solid fa-ban"></i> Cancel</button>
+            <button class="topbar-btn btn-success" onclick="bulkExport()"><i class="fa-solid fa-download"></i> Export Selected</button>
+            <button class="topbar-btn btn-ghost" style="color:#fff;border-color:rgba(255,255,255,0.2)" onclick="clearBulk()"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fa-solid fa-search"></i>
+            <input class="search-input" id="searchInput" placeholder="Search order ID, name, phone, email, SKU..." oninput="debounceSearch()"/>
+          </div>
+          <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+            <option value="">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="processing">Processing</option>
+            <option value="packed">Packed</option>
+            <option value="ready to ship">Ready To Ship</option>
+            <option value="shipped">Shipped</option>
+            <option value="out for delivery">Out For Delivery</option>
+            <option value="delivered">Delivered</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="returned">Returned</option>
+            <option value="refunded">Refunded</option>
+          </select>
+          <select class="filter-select" id="payFilter" onchange="applyFilters()">
+            <option value="">All Payment</option>
+            <option value="cod">COD</option>
+            <option value="wallet">Wallet</option>
+            <option value="online">Online</option>
+          </select>
+          <select class="filter-select" id="roleFilter" onchange="applyFilters()">
+            <option value="">All Roles</option>
+            <option value="public">Public</option>
+            <option value="retailer">Retailer</option>
+            <option value="distributor">Distributor</option>
+          </select>
+          <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+            <option value="">All Types</option>
+            <option value="NORMAL">Normal</option>
+            <option value="GLASS">Glass</option>
+            <option value="COVER">Cover</option>
+            <option value="OTHERS">Others</option>
+            <option value="MIXED">Mixed</option>
+          </select>
+          <div class="toolbar-divider"></div>
+          <input class="filter-select" type="date" id="dateFrom" onchange="applyFilters()" title="From date"/>
+          <input class="filter-select" type="date" id="dateTo" onchange="applyFilters()" title="To date"/>
+          <button class="topbar-btn btn-ghost" onclick="clearFilters()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Orders <span id="ordersCountLabel" style="color:var(--ink3);font-weight:400;font-size:13px"></span></div>
+            <div class="table-actions">
+              <select class="filter-select" id="pageSizeSelect" onchange="changePageSize()" style="font-size:12px">
+                <option value="20">20 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="ordersTable">
+              <thead>
+                <tr>
+                  <th class="check-col"><input type="checkbox" class="custom-check" id="selectAll" onchange="toggleSelectAll()"/></th>
+                  <th onclick="sortTable('id')" style="cursor:pointer">Order ID <i class="fa-solid fa-sort" style="font-size:9px;opacity:0.4"></i></th>
+                  <th onclick="sortTable('date')" style="cursor:pointer">Date <i class="fa-solid fa-sort" style="font-size:9px;opacity:0.4"></i></th>
+                  <th>Customer</th>
+                  <th>Role</th>
+                  <th>Type</th>
+                  <th onclick="sortTable('total')" style="cursor:pointer">Amount <i class="fa-solid fa-sort" style="font-size:9px;opacity:0.4"></i></th>
+                  <th>Payment</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ordersBody">
+                <tr><td colspan="10"><div class="loader-wrap"><div class="loader-spinner"></div><div class="loader-text">Loading orders…</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination" id="paginationWrap">
+            <div class="pagination-info" id="paginationInfo"></div>
+            <div class="pagination-btns" id="paginationBtns"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SHIPPING PANEL ══ -->
+      <div class="panel" id="panel-shipping">
+        <div class="alert-banner alert-info">
+          <i class="fa-solid fa-truck"></i>
+          <span>Click <strong>View</strong> on any shipped order to update tracking details. Tracking info is shown to customers in their order history.</span>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Orders Ready to Ship / In Transit</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="shippingTable">
+              <thead>
+                <tr>
+                  <th>Order ID</th><th>Customer</th><th>Address</th>
+                  <th>Status</th><th>Tracking</th><th>Courier</th><th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="shippingBody">
+                <tr><td colspan="7"><div class="loader-wrap"><div class="loader-spinner"></div><div class="loader-text">Loading…</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SUPPORT PANEL ══ -->
+      <div class="panel" id="panel-support">
+        <div class="alert-banner alert-info">
+          <i class="fa-solid fa-headset"></i>
+          <span>Support tickets from customers appear here. Link a ticket to an order for context.</span>
+        </div>
+        <div id="supportList">
+          <div class="empty-state">
+            <div class="empty-icon">🎧</div>
+            <div class="empty-title">No Support Tickets</div>
+            <div class="empty-desc">Support integration reads from Store_Activity — connect your API to see requests.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══ ORDER DETAIL MODAL ═══ -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal" style="max-width:900px">
+    <div class="modal-header">
+      <div class="modal-icon"><i class="fa-solid fa-box-open"></i></div>
+      <div>
+        <div class="modal-title" id="modalOrderNum">Order Details</div>
+        <div class="modal-subtitle" id="modalOrderDate"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal('orderModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Summary Cards -->
+      <div class="order-summary-cards" id="modalSummaryCards">
+        <div class="summary-card">
+          <div class="summary-card-label">Order Total</div>
+          <div class="summary-card-value" id="modal-grand-total">—</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-label">Payment Method</div>
+          <div class="summary-card-value" id="modal-pay-method">—</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-card-label">Current Status</div>
+          <div class="summary-card-value" id="modal-status">—</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" onclick="modalTab(this,'tab-details')">📋 Details</div>
+        <div class="tab" onclick="modalTab(this,'tab-items')">📦 Items</div>
+        <div class="tab" onclick="modalTab(this,'tab-status')">🔄 Update Status</div>
+        <div class="tab" onclick="modalTab(this,'tab-shipping')">🚚 Shipping</div>
+        <div class="tab" onclick="modalTab(this,'tab-timeline')">⏱ Timeline</div>
+        <div class="tab" onclick="modalTab(this,'tab-financial')">💰 Financial</div>
+      </div>
+
+      <!-- Details Tab -->
+      <div class="panel active" id="tab-details">
+        <div class="modal-section">
+          <div class="modal-section-title">Customer Information</div>
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Name</div><div class="info-value" id="d-name">—</div></div>
+            <div class="info-item"><div class="info-label">Phone</div><div class="info-value mono" id="d-phone">—</div></div>
+            <div class="info-item"><div class="info-label">Email</div><div class="info-value" id="d-email">—</div></div>
+            <div class="info-item"><div class="info-label">Wallet ID</div><div class="info-value mono" id="d-walletid">—</div></div>
+            <div class="info-item"><div class="info-label">User Role</div><div class="info-value" id="d-role">—</div></div>
+            <div class="info-item"><div class="info-label">Account Status</div><div class="info-value" id="d-ustatus">—</div></div>
+          </div>
+        </div>
+        <div class="modal-section">
+          <div class="modal-section-title">Delivery Address</div>
+          <div style="font-size:13px;color:var(--ink2);line-height:1.6" id="d-address">—</div>
+        </div>
+        <div class="modal-section">
+          <div class="modal-section-title">Order Notes</div>
+          <div style="font-size:13px;color:var(--ink2)" id="d-notes">—</div>
+        </div>
+        <div class="modal-section">
+          <div class="modal-section-title">Order Information</div>
+          <div class="info-grid">
+            <div class="info-item"><div class="info-label">Order ID</div><div class="info-value mono" id="d-ordid">—</div></div>
+            <div class="info-item"><div class="info-label">Order Date</div><div class="info-value" id="d-date">—</div></div>
+            <div class="info-item"><div class="info-label">Product Types</div><div class="info-value" id="d-ptypes">—</div></div>
+            <div class="info-item"><div class="info-label">Payment Status</div><div class="info-value" id="d-paystatus">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items Tab -->
+      <div class="panel" id="tab-items">
+        <div class="modal-section">
+          <div class="modal-section-title">Ordered Items</div>
+          <div style="overflow-x:auto">
+            <table class="items-table" id="modalItemsTable">
+              <thead>
+                <tr><th>#</th><th>Product</th><th>Type</th><th>Qty</th><th>Unit Price</th><th>GST</th><th>Total</th></tr>
+              </thead>
+              <tbody id="modalItemsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Tab -->
+      <div class="panel" id="tab-status">
+        <div class="modal-section">
+          <div class="modal-section-title">Update Order Status</div>
+          <div class="status-update-wrap">
+            <select class="status-select-lg" id="newStatusSelect">
+              <option value="">Select new status…</option>
+              <option value="pending">⏳ Pending</option>
+              <option value="confirmed">✅ Confirmed</option>
+              <option value="processing">⚙️ Processing</option>
+              <option value="packed">📦 Packed</option>
+              <option value="ready to ship">🚀 Ready To Ship</option>
+              <option value="shipped">🚚 Shipped</option>
+              <option value="out for delivery">🏍️ Out For Delivery</option>
+              <option value="delivered">🎉 Delivered</option>
+              <option value="cancelled">❌ Cancelled</option>
+              <option value="returned">↩️ Returned</option>
+              <option value="refunded">💸 Refunded</option>
+            </select>
+            <button class="topbar-btn btn-primary" onclick="updateOrderStatus()">
+              <i class="fa-solid fa-check"></i> Update Status
+            </button>
+          </div>
+          <div style="margin-top:16px;padding:14px;background:var(--yellow-bg);border:1px solid #fde68a;border-radius:var(--radius-sm);font-size:13px;color:#78350f">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <strong> Note:</strong> Status updates are saved directly to Google Sheets. Cashback is automatically processed when status changes to <em>delivered</em> for wallet orders.
+          </div>
+        </div>
+      </div>
+
+      <!-- Shipping Tab -->
+      <div class="panel" id="tab-shipping">
+        <div class="modal-section">
+          <div class="modal-section-title">Shipping Details</div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tracking Number</label>
+              <input class="form-input" id="sh-tracking" placeholder="AWB / Tracking number"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Courier Name</label>
+              <input class="form-input" id="sh-courier" placeholder="Delhivery, DTDC, BlueDart…"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Dispatch Date</label>
+              <input class="form-input" id="sh-dispatch" type="date"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expected Delivery</label>
+              <input class="form-input" id="sh-expected" type="date"/>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label class="form-label">Shipping Notes</label>
+            <textarea class="form-input form-textarea" id="sh-notes" placeholder="Any special handling instructions…"></textarea>
+          </div>
+          <button class="topbar-btn btn-primary" onclick="saveShipping()">
+            <i class="fa-solid fa-floppy-disk"></i> Save Shipping Info
+          </button>
+        </div>
+      </div>
+
+      <!-- Timeline Tab -->
+      <div class="panel" id="tab-timeline">
+        <div class="modal-section">
+          <div class="modal-section-title">Order Timeline</div>
+          <div class="timeline" id="orderTimeline"></div>
+        </div>
+      </div>
+
+      <!-- Financial Tab -->
+      <div class="panel" id="tab-financial">
+        <div class="modal-section">
+          <div class="modal-section-title">Financial Breakdown</div>
+          <div class="totals-box" id="financialBreakdown"></div>
+        </div>
+        <div class="modal-section" id="walletSection">
+          <div class="modal-section-title">Wallet & Cashback</div>
+          <div class="info-grid" id="walletInfo"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="topbar-btn btn-ghost" onclick="printOrderDetail()"><i class="fa-solid fa-print"></i> Print</button>
+      <button class="topbar-btn btn-ghost" onclick="closeModal('orderModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════════ */
+var STATE = {
+  scriptUrl: '',
+  adminEmail: '',
+  adminPwd: '',
+  session: null,          // { id, role, full_name }
+  allOrders: [],          // raw from API
+  filteredOrders: [],     // after filters
+  currentPage: 1,
+  pageSize: 20,
+  sortCol: 'date',
+  sortDir: 'desc',
+  searchTimer: null,
+  selectedIds: new Set(),
+  currentOrderId: null,
+  currentOrderData: null,
+  shippingData: {},       // orderId → {tracking, courier, dispatch, expected, notes}
+};
+
+/* ═══════════════════════════════════════════════════════════════════
+   PERSISTENCE
+═══════════════════════════════════════════════════════════════════ */
+function saveToLocal(key, val) { try { localStorage.setItem('om_' + key, JSON.stringify(val)); } catch(e) {} }
+function loadFromLocal(key, def) { try { var v = localStorage.getItem('om_' + key); return v ? JSON.parse(v) : def; } catch(e) { return def; } }
+
+function loadConfig() {
+  STATE.scriptUrl  = loadFromLocal('url', '');
+  STATE.adminEmail = loadFromLocal('email', '');
+  STATE.adminPwd   = loadFromLocal('pwd', '');
+  STATE.shippingData = loadFromLocal('shipping', {});
+  if (STATE.scriptUrl) {
+    document.getElementById('scriptUrlInput').value = STATE.scriptUrl;
+    document.getElementById('adminEmail').value = STATE.adminEmail;
+    document.getElementById('adminPwd').value = STATE.adminPwd;
+  }
+}
+
+function saveConfig() {
+  var url   = document.getElementById('scriptUrlInput').value.trim();
+  var email = document.getElementById('adminEmail').value.trim();
+  var pwd   = document.getElementById('adminPwd').value.trim();
+  if (!url || !url.includes('script.google.com')) { toast('Enter a valid Apps Script URL', 'error'); return; }
+  if (!email || !pwd) { toast('Email and password are required', 'error'); return; }
+  STATE.scriptUrl  = url;
+  STATE.adminEmail = email;
+  STATE.adminPwd   = pwd;
+  saveToLocal('url', url);
+  saveToLocal('email', email);
+  saveToLocal('pwd', pwd);
+  closeModal('setupModal');
+  authenticate();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   API BRIDGE
+═══════════════════════════════════════════════════════════════════ */
+function callAPI(params) {
+  if (!STATE.scriptUrl) return Promise.reject(new Error('API not configured'));
+  var qs = Object.keys(params).map(function(k) { return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]); }).join('&');
+  var url = STATE.scriptUrl + '?' + qs;
+  return fetch(url).then(function(r) { return r.json(); });
+}
+
+function authenticate() {
+  document.getElementById('notConfiguredBanner').style.display = 'none';
+  showToastLoading('Authenticating…');
+  callAPI({ action: 'login', email: STATE.adminEmail, password: STATE.adminPwd })
+    .then(function(res) {
+      if (res.success) {
+        STATE.session = res.data;
+        document.getElementById('adminName').textContent = res.data.full_name || 'Admin';
+        document.getElementById('avatarText').textContent = (res.data.full_name || 'A')[0].toUpperCase();
+        document.getElementById('connectBtnText').textContent = 'Connected ✓';
+        document.getElementById('connectBtn').style.background = 'var(--green)';
+        toast('Connected as ' + res.data.full_name, 'success');
+        refreshAll();
+      } else {
+        toast(res.message || 'Login failed', 'error');
+        document.getElementById('notConfiguredBanner').style.display = 'flex';
+      }
+    }).catch(function(e) {
+      toast('Connection failed: ' + e.message, 'error');
+      document.getElementById('notConfiguredBanner').style.display = 'flex';
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LOAD ORDERS
+═══════════════════════════════════════════════════════════════════ */
+function refreshAll() {
+  if (!STATE.scriptUrl) { openSetupModal(); return; }
+  loadOrders();
+}
+
+function loadOrders() {
+  setOrdersLoading();
+  callAPI({ action: 'adminGetAllStoreOrders', status: '', dateFrom: '', dateTo: '' })
+    .then(function(res) {
+      if (res.success) {
+        STATE.allOrders = res.data || [];
+        enrichOrders();
+        computeStats();
+        applyFilters();
+        renderShippingPanel();
+        toast('Loaded ' + STATE.allOrders.length + ' orders', 'success');
+      } else {
+        // Fallback: try getStoreOrders
+        return callAPI({ action: 'getStoreOrders', userId: STATE.session ? STATE.session.id : 0, userRole: 'admin', distId: '' });
+      }
+    })
+    .then(function(res2) {
+      if (res2 && res2.success && STATE.allOrders.length === 0) {
+        STATE.allOrders = res2.data || [];
+        enrichOrders();
+        computeStats();
+        applyFilters();
+        renderShippingPanel();
+      }
+    })
+    .catch(function(e) {
+      showOrdersError(e.message);
+    });
+}
+
+/* Enrich orders with product type detection from notes/order data */
+function enrichOrders() {
+  STATE.allOrders.forEach(function(o) {
+    // Detect product types from items if present, else from notes
+    var notes = String(o.notes || '');
+    var types = new Set();
+    if (o.items && o.items.length) {
+      o.items.forEach(function(i) {
+        var t = (i.product_type || 'NORMAL').toUpperCase();
+        if (['NORMAL','GLASS','COVER','OTHERS'].indexOf(t) > -1) types.add(t);
+      });
+    } else {
+      // Guess from notes
+      if (notes.toLowerCase().indexOf('glass') > -1) types.add('GLASS');
+      if (notes.toLowerCase().indexOf('cover') > -1) types.add('COVER');
+      if (notes.toLowerCase().indexOf('others') > -1 || notes.toLowerCase().indexOf('brand') > -1) types.add('OTHERS');
+    }
+    if (types.size === 0) types.add('NORMAL');
+    o._types = Array.from(types);
+    o._typeLabel = types.size > 1 ? 'MIXED' : Array.from(types)[0];
+
+    // Parse wallet used from notes
+    var wMatch = notes.match(/wallet_used:([\d.]+)/i);
+    o._walletUsed = wMatch ? parseFloat(wMatch[1]) : (parseFloat(o.wallet_used) || 0);
+    var cbMatch = notes.match(/cashback_earned:([\d.]+)/i);
+    o._cashbackEarned = cbMatch ? parseFloat(cbMatch[1]) : 0;
+
+    // Coupon from notes
+    var cMatch = notes.match(/coupon:([A-Z0-9]+)/i);
+    o._coupon = cMatch ? cMatch[1] : (o.coupon || '');
+
+    // Tracking from local storage
+    var sd = STATE.shippingData[o.id] || {};
+    o._tracking = sd.tracking || '';
+    o._courier  = sd.courier  || '';
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════════════════════════ */
+function computeStats() {
+  var orders = STATE.allOrders;
+  var today  = new Date().toISOString().split('T')[0];
+  var month  = today.substring(0,7);
+
+  var st = {
+    total: orders.length,
+    pending: 0, confirmed: 0, processing: 0, packed: 0,
+    shipped: 0, delivered: 0, cancelled: 0, returned: 0, refunded: 0,
+    cod: 0, wallet: 0, online: 0, revenue: 0, today: 0, month: 0
+  };
+
+  orders.forEach(function(o) {
+    var s = (o.status || '').toLowerCase().trim();
+    if (st[s] !== undefined) st[s]++;
+    else if (s === 'ready to ship') st.packed++;
+    else if (s === 'out for delivery') st.shipped++;
+
+    var pm = (o.payment_method || '').toLowerCase();
+    if (pm === 'cod') st.cod++;
+    else if (pm === 'wallet') st.wallet++;
+    else st.online++;
+
+    if (s !== 'cancelled' && s !== 'returned' && s !== 'refunded') {
+      st.revenue += parseFloat(o.grand_total || 0);
+    }
+
+    var od = o.order_date || '';
+    if (typeof od === 'object') od = od.toISOString ? od.toISOString().split('T')[0] : '';
+    if (String(od).startsWith(today)) st.today++;
+    if (String(od).startsWith(month)) st.month++;
+  });
+
+  setEl('st-total', st.total);
+  setEl('st-pending', st.pending);
+  setEl('st-processing', st.processing + st.confirmed);
+  setEl('st-packed', st.packed);
+  setEl('st-shipped', st.shipped);
+  setEl('st-delivered', st.delivered);
+  setEl('st-cancelled', st.cancelled);
+  setEl('st-returned', st.returned + st.refunded);
+  setEl('st-cod', st.cod);
+  setEl('st-wallet', st.wallet);
+  setEl('st-online', st.online);
+  setEl('st-revenue', '₹' + formatNum(st.revenue));
+  setEl('st-today', st.today);
+  setEl('st-month', st.month);
+  setEl('navPendingCount', st.pending);
+  updateTopbarStats(st);
+}
+
+function updateTopbarStats(st) {}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FILTERS & SEARCH
+═══════════════════════════════════════════════════════════════════ */
+function applyFilters() {
+  var q      = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  var status = document.getElementById('statusFilter').value.toLowerCase();
+  var pay    = document.getElementById('payFilter').value.toLowerCase();
+  var role   = document.getElementById('roleFilter').value.toLowerCase();
+  var type   = document.getElementById('typeFilter').value.toUpperCase();
+  var dFrom  = document.getElementById('dateFrom').value;
+  var dTo    = document.getElementById('dateTo').value;
+
+  STATE.filteredOrders = STATE.allOrders.filter(function(o) {
+    if (status && (o.status || '').toLowerCase().indexOf(status) === -1) return false;
+    if (pay    && (o.payment_method || '').toLowerCase().indexOf(pay) === -1) return false;
+    if (role   && (o.user_role || '').toLowerCase().indexOf(role) === -1) return false;
+    if (type) {
+      if (type === 'MIXED' && o._typeLabel !== 'MIXED') return false;
+      if (type !== 'MIXED' && o._types.indexOf(type) === -1 && o._typeLabel !== type) return false;
+    }
+    if (dFrom && String(o.order_date || '') < dFrom) return false;
+    if (dTo   && String(o.order_date || '') > dTo + 'Z') return false;
+    if (q) {
+      var hay = [
+        o.order_number, o.user_name, o.user_phone, o.user_email,
+        o.id, o.address, o._tracking, o._courier,
+        o.wallet_id || '', String(o.grand_total || '')
+      ].join(' ').toLowerCase();
+      if (hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  // Sort
+  sortOrders();
+  STATE.currentPage = 1;
+  renderOrdersTable();
+  setEl('ordersCountLabel', '(' + STATE.filteredOrders.length + ')');
+}
+
+function debounceSearch() {
+  clearTimeout(STATE.searchTimer);
+  STATE.searchTimer = setTimeout(applyFilters, 280);
+}
+
+function clearFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('payFilter').value = '';
+  document.getElementById('roleFilter').value = '';
+  document.getElementById('typeFilter').value = '';
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value = '';
+  applyFilters();
+}
+
+function applyStatusFilter(s) {
+  document.getElementById('statusFilter').value = s;
+  applyFilters();
+}
+
+function filterPayMethod(m) {
+  document.getElementById('payFilter').value = m;
+  applyFilters();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SORT
+═══════════════════════════════════════════════════════════════════ */
+function sortTable(col) {
+  if (STATE.sortCol === col) STATE.sortDir = STATE.sortDir === 'asc' ? 'desc' : 'asc';
+  else { STATE.sortCol = col; STATE.sortDir = 'desc'; }
+  sortOrders();
+  renderOrdersTable();
+}
+
+function sortOrders() {
+  var col = STATE.sortCol;
+  var dir = STATE.sortDir === 'asc' ? 1 : -1;
+  STATE.filteredOrders.sort(function(a, b) {
+    var av, bv;
+    if (col === 'id')    { av = parseInt(a.id); bv = parseInt(b.id); }
+    else if (col === 'total') { av = parseFloat(a.grand_total||0); bv = parseFloat(b.grand_total||0); }
+    else { av = String(a.order_date||''); bv = String(b.order_date||''); }
+    return av > bv ? dir : av < bv ? -dir : 0;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RENDER ORDERS TABLE
+═══════════════════════════════════════════════════════════════════ */
+function renderOrdersTable() {
+  var body = document.getElementById('ordersBody');
+  var ps   = STATE.pageSize;
+  var pg   = STATE.currentPage;
+  var total= STATE.filteredOrders.length;
+  var start= (pg - 1) * ps;
+  var end  = Math.min(start + ps, total);
+  var page = STATE.filteredOrders.slice(start, end);
+
+  if (!total) {
+    body.innerHTML = '<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No orders found</div><div class="empty-desc">Try adjusting your filters or search query.</div></div></td></tr>';
+    document.getElementById('paginationInfo').textContent = '';
+    document.getElementById('paginationBtns').innerHTML = '';
+    return;
+  }
+
+  var html = '';
+  page.forEach(function(o) {
+    var isSelected = STATE.selectedIds.has(o.id);
+    var typeBadge  = renderTypeBadge(o._typeLabel);
+    var statusBadge= renderStatusBadge(o.status);
+    var payBadge   = renderPayBadge(o.payment_method);
+    var roleBadge  = renderRoleBadge(o.user_role);
+    var dateStr    = formatDate(o.order_date);
+    var walletStr  = o._walletUsed > 0 ? '<div class="cust-wallet"><i class="fa-solid fa-wallet" style="font-size:9px"></i> ₹' + o._walletUsed.toFixed(2) + ' wallet</div>' : '';
+    html += '<tr data-id="' + o.id + '">' +
+      '<td class="check-col"><input type="checkbox" class="custom-check row-check" data-id="' + o.id + '" ' + (isSelected?'checked':'') + ' onchange="toggleRow(this)"/></td>' +
+      '<td><div class="order-id">#' + esc(o.order_number||o.id) + '</div><div class="order-date">' + dateStr + '</div></td>' +
+      '<td><div style="font-size:11px;color:var(--ink3)">' + formatDate(o.order_date) + '</div></td>' +
+      '<td><div class="cust-name">' + esc(o.user_name||'Unknown') + '</div>' +
+        '<div class="cust-phone">' + esc(o.user_phone||'') + '</div>' +
+        '<div class="cust-wallet">' + esc(o.wallet_id||'') + '</div>' +
+        walletStr +
+      '</td>' +
+      '<td>' + roleBadge + '</td>' +
+      '<td>' + typeBadge + '</td>' +
+      '<td><div class="amount-cell">₹' + formatNum(o.grand_total) + '</div>' +
+        (o._walletUsed > 0 ? '<div class="amount-sub">-₹' + o._walletUsed.toFixed(0) + ' wallet</div>' : '') +
+      '</td>' +
+      '<td>' + payBadge + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td style="white-space:nowrap">' +
+        '<button class="action-btn action-view" onclick="viewOrder(' + o.id + ')" title="View Details"><i class="fa-solid fa-eye"></i></button> ' +
+        '<button class="action-btn action-edit" onclick="quickStatus(' + o.id + ')" title="Quick Status"><i class="fa-solid fa-pen-to-square"></i></button> ' +
+        '<button class="action-btn action-print" onclick="printSingleOrder(' + o.id + ')" title="Print"><i class="fa-solid fa-print"></i></button>' +
+      '</td>' +
+    '</tr>';
+  });
+  body.innerHTML = html;
+
+  // Update select all
+  document.getElementById('selectAll').checked = (STATE.selectedIds.size > 0 && STATE.selectedIds.size === STATE.filteredOrders.length);
+
+  renderPagination(total, pg, ps);
+}
+
+function renderPagination(total, pg, ps) {
+  var totalPages = Math.ceil(total / ps);
+  var start = (pg-1)*ps+1;
+  var end   = Math.min(pg*ps, total);
+  document.getElementById('paginationInfo').textContent = 'Showing ' + start + '–' + end + ' of ' + total + ' orders';
+
+  var html = '';
+  html += '<button class="page-btn" onclick="goPage(' + (pg-1) + ')" ' + (pg<=1?'disabled':'') + '><i class="fa-solid fa-chevron-left"></i></button>';
+
+  var pages = [];
+  if (totalPages <= 7) { for(var i=1;i<=totalPages;i++) pages.push(i); }
+  else {
+    pages = [1,2];
+    if (pg > 4) pages.push('…');
+    for (var j=Math.max(3,pg-1);j<=Math.min(totalPages-2,pg+1);j++) pages.push(j);
+    if (pg < totalPages-3) pages.push('…');
+    pages.push(totalPages-1,totalPages);
+  }
+
+  pages.forEach(function(p) {
+    if (p === '…') html += '<button class="page-btn" disabled>…</button>';
+    else html += '<button class="page-btn' + (p===pg?' active':'') + '" onclick="goPage(' + p + ')">' + p + '</button>';
+  });
+
+  html += '<button class="page-btn" onclick="goPage(' + (pg+1) + ')" ' + (pg>=totalPages?'disabled':'') + '><i class="fa-solid fa-chevron-right"></i></button>';
+  document.getElementById('paginationBtns').innerHTML = html;
+}
+
+function goPage(p) {
+  var totalPages = Math.ceil(STATE.filteredOrders.length / STATE.pageSize);
+  if (p < 1 || p > totalPages) return;
+  STATE.currentPage = p;
+  renderOrdersTable();
+  document.querySelector('.content').scrollTop = 0;
+}
+
+function changePageSize() {
+  STATE.pageSize = parseInt(document.getElementById('pageSizeSelect').value);
+  STATE.currentPage = 1;
+  renderOrdersTable();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BADGE RENDERERS
+═══════════════════════════════════════════════════════════════════ */
+var STATUS_MAP = {
+  'pending':        'st-pending',
+  'confirmed':      'st-confirmed',
+  'processing':     'st-processing',
+  'packed':         'st-packed',
+  'ready to ship':  'st-ready',
+  'shipped':        'st-shipped',
+  'out for delivery':'st-out',
+  'delivered':      'st-delivered',
+  'cancelled':      'st-cancelled',
+  'returned':       'st-returned',
+  'refunded':       'st-refunded'
+};
+
+function renderStatusBadge(s) {
+  var sl = (s || 'pending').toLowerCase();
+  var cls = STATUS_MAP[sl] || 'st-pending';
+  var label = (s||'pending').charAt(0).toUpperCase() + (s||'pending').slice(1);
+  return '<span class="status-badge ' + cls + '">' + esc(label) + '</span>';
+}
+
+function renderPayBadge(m) {
+  var ml = (m||'cod').toLowerCase();
+  var cls = ml === 'wallet' ? 'pay-wallet' : ml === 'online' ? 'pay-online' : 'pay-cod';
+  var icon = ml === 'wallet' ? 'fa-wallet' : ml === 'online' ? 'fa-credit-card' : 'fa-money-bill-wave';
+  return '<span class="pay-badge ' + cls + '"><i class="fa-solid ' + icon + '"></i> ' + esc(m||'COD') + '</span>';
+}
+
+function renderRoleBadge(r) {
+  var rl = (r||'public').toLowerCase();
+  var cls = rl === 'retailer' ? 'role-retailer' : rl === 'distributor' ? 'role-distributor' : rl === 'super' ? 'role-super' : 'role-public';
+  return '<span class="role-badge ' + cls + '">' + esc(r||'public') + '</span>';
+}
+
+function renderTypeBadge(t) {
+  var tu = (t||'NORMAL').toUpperCase();
+  var cls = tu === 'GLASS' ? 'type-glass' : tu === 'COVER' ? 'type-cover' : tu === 'OTHERS' ? 'type-others' : tu === 'MIXED' ? 'type-mixed' : 'type-normal';
+  var icons = {NORMAL:'📦',GLASS:'🔲',COVER:'📱',OTHERS:'🏷️',MIXED:'🔀'};
+  return '<span class="type-badge ' + cls + '">' + (icons[tu]||'📦') + ' ' + tu + '</span>';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ORDER DETAIL MODAL
+═══════════════════════════════════════════════════════════════════ */
+function viewOrder(orderId) {
+  var o = STATE.allOrders.find(function(x) { return x.id == orderId; });
+  if (!o) { toast('Order not found in cache', 'error'); return; }
+  STATE.currentOrderId = orderId;
+  STATE.currentOrderData = o;
+
+  // Header
+  setEl('modalOrderNum', '#' + (o.order_number || orderId));
+  setEl('modalOrderDate', formatDateTime(o.order_date));
+  setEl('modal-grand-total', '₹' + formatNum(o.grand_total));
+  setEl('modal-pay-method', o.payment_method || 'COD');
+  setEl('modal-status', (o.status||'').charAt(0).toUpperCase() + (o.status||'').slice(1));
+
+  // Details tab
+  setEl('d-name',     o.user_name || '—');
+  setEl('d-phone',    o.user_phone || '—');
+  setEl('d-email',    o.user_email || '—');
+  setEl('d-walletid', o.wallet_id || '—');
+  setEl('d-role',     o.user_role || '—');
+  setEl('d-ustatus',  o.user_status || '—');
+  setEl('d-address',  o.address || '—');
+  setEl('d-notes',    o.notes || '—');
+  setEl('d-ordid',    '#' + (o.order_number||orderId));
+  setEl('d-date',     formatDateTime(o.order_date));
+  setEl('d-ptypes',   (o._types||['NORMAL']).join(', '));
+  setEl('d-paystatus', o.payment_status || 'pending');
+
+  // Status select
+  document.getElementById('newStatusSelect').value = (o.status||'').toLowerCase();
+
+  // Shipping
+  var sd = STATE.shippingData[orderId] || {};
+  document.getElementById('sh-tracking').value = sd.tracking || o._tracking || '';
+  document.getElementById('sh-courier').value  = sd.courier  || o._courier  || '';
+  document.getElementById('sh-dispatch').value = sd.dispatch || '';
+  document.getElementById('sh-expected').value = sd.expected || '';
+  document.getElementById('sh-notes').value    = sd.notes    || '';
+
+  // Timeline
+  buildTimeline(o);
+
+  // Financial
+  buildFinancial(o);
+
+  // Set first tab
+  modalTab(document.querySelector('#orderModal .tabs .tab'), 'tab-details');
+
+  // Load items from API
+  loadOrderItems(orderId, o);
+
+  openModal('orderModal');
+}
+
+function loadOrderItems(orderId, o) {
+  var body = document.getElementById('modalItemsBody');
+  body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">Loading items…</td></tr>';
+
+  callAPI({ action: 'getStoreOrderDetail', orderId: orderId, userId: STATE.session ? STATE.session.id : 0, userRole: 'admin' })
+    .then(function(res) {
+      if (res.success && res.data && res.data.items) {
+        var items = res.data.items;
+        // Update types from actual items
+        var types = new Set();
+        items.forEach(function(i) { if (i.product_type) types.add(i.product_type.toUpperCase()); });
+        if (types.size > 0) {
+          o._types = Array.from(types);
+          o._typeLabel = types.size > 1 ? 'MIXED' : Array.from(types)[0];
+          setEl('d-ptypes', Array.from(types).join(', '));
+        }
+
+        renderItemsTable(items);
+      } else {
+        body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">Item details not available</td></tr>';
+      }
+    })
+    .catch(function() {
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">Could not load items</td></tr>';
+    });
+}
+
+function renderItemsTable(items) {
+  var body = document.getElementById('modalItemsBody');
+  if (!items || !items.length) {
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">No items found</td></tr>';
+    return;
+  }
+  var html = '';
+  items.forEach(function(it, idx) {
+    var tn = it.product_type || 'NORMAL';
+    html += '<tr>' +
+      '<td style="color:var(--ink3);font-size:12px">' + (idx+1) + '</td>' +
+      '<td><div class="item-name">' + esc(it.display_name || it.product_name || 'Product') + '</div>' +
+        (it.variant_name ? '<div class="item-variant">Variant: ' + esc(it.variant_name) + '</div>' : '') +
+        (it.item_notes   ? '<div class="item-variant">Note: ' + esc(it.item_notes) + '</div>' : '') +
+        '<div class="item-variant">SKU: ' + esc(it.sku||'—') + '</div>' +
+      '</td>' +
+      '<td>' + renderTypeBadge(tn) + '</td>' +
+      '<td style="font-weight:700">' + (it.qty||1) + '</td>' +
+      '<td>₹' + formatNum(it.unit_price||it.price||0) + '</td>' +
+      '<td style="color:var(--ink3)">₹' + formatNum(it.tax_amount||0) + '</td>' +
+      '<td style="font-weight:700">₹' + formatNum(it.line_total||it.total||0) + '</td>' +
+    '</tr>';
+  });
+  body.innerHTML = html;
+}
+
+function buildTimeline(o) {
+  var s = (o.status||'pending').toLowerCase();
+  var ORDER = ['pending','confirmed','processing','packed','ready to ship','shipped','out for delivery','delivered'];
+  var BAD   = ['cancelled','returned','refunded'];
+  var tl = document.getElementById('orderTimeline');
+
+  var entries = [];
+  var createdDate = formatDateTime(o.order_date);
+  entries.push({label:'Order Created', time:createdDate, desc:'Customer placed order #' + (o.order_number||o.id), cls:'active'});
+  entries.push({label:'Payment ' + (o.payment_status==='paid'?'Completed':'Pending'), time:createdDate, desc:'Method: ' + (o.payment_method||'COD') + (o._walletUsed>0?' (₹'+o._walletUsed.toFixed(2)+' wallet)':''), cls:o.payment_status==='paid'?'success':'active'});
+
+  var currentIdx = ORDER.indexOf(s);
+  ORDER.forEach(function(step, i) {
+    if (step === 'pending') return;
+    var label = step.charAt(0).toUpperCase() + step.slice(1);
+    var done  = currentIdx >= i;
+    var cur   = currentIdx === i;
+    entries.push({label:label, time: done ? '✓ Completed' : 'Pending', desc:'', cls: done ? 'success' : cur ? 'active' : ''});
+  });
+
+  if (BAD.indexOf(s) > -1) {
+    entries.push({label:s.charAt(0).toUpperCase()+s.slice(1), time:'Recorded', desc:'', cls:'danger'});
+  }
+
+  var html = entries.map(function(e) {
+    return '<div class="tl-item">' +
+      '<div class="tl-dot ' + e.cls + '"></div>' +
+      '<div class="tl-status">' + esc(e.label) + '</div>' +
+      '<div class="tl-time">' + esc(e.time) + '</div>' +
+      (e.desc ? '<div class="tl-desc">' + esc(e.desc) + '</div>' : '') +
+    '</div>';
+  }).join('');
+
+  tl.innerHTML = html;
+}
+
+function buildFinancial(o) {
+  var fb = document.getElementById('financialBreakdown');
+  var wi = document.getElementById('walletInfo');
+
+  var sub      = parseFloat(o.subtotal||0);
+  var tax      = parseFloat(o.tax||0);
+  var disc     = parseFloat(o.discount||0);
+  var del      = parseFloat(o.delivery||0);
+  var grand    = parseFloat(o.grand_total||0);
+  var wallet   = parseFloat(o._walletUsed||0);
+  var cashback = parseFloat(o._cashbackEarned||0);
+  var coupon   = o._coupon || '';
+
+  fb.innerHTML =
+    '<div class="total-row"><span class="total-label">Subtotal</span><span class="total-value">₹' + formatNum(sub) + '</span></div>' +
+    (tax  ? '<div class="total-row"><span class="total-label">Tax / GST</span><span class="total-value">₹' + formatNum(tax) + '</span></div>' : '') +
+    (disc ? '<div class="total-row"><span class="total-label">Discount</span><span class="total-value" style="color:var(--green)">-₹' + formatNum(disc) + '</span></div>' : '') +
+    (coupon ? '<div class="total-row"><span class="total-label">Coupon (<strong>' + esc(coupon) + '</strong>)</span><span class="total-value" style="color:var(--green)">Applied</span></div>' : '') +
+    (del  ? '<div class="total-row"><span class="total-label">Delivery</span><span class="total-value">₹' + formatNum(del) + '</span></div>' : '') +
+    (wallet ? '<div class="total-row"><span class="total-label">Wallet Used</span><span class="total-value" style="color:var(--purple)">-₹' + formatNum(wallet) + '</span></div>' : '') +
+    '<div class="total-row"><span class="total-label">Grand Total</span><span class="total-value">₹' + formatNum(grand) + '</span></div>';
+
+  wi.innerHTML =
+    '<div class="info-item"><div class="info-label">Wallet Used</div><div class="info-value"><span class="wallet-badge"><i class="fa-solid fa-wallet"></i> ₹' + formatNum(wallet) + '</span></div></div>' +
+    '<div class="info-item"><div class="info-label">Cashback Earned</div><div class="info-value"><span class="cashback-badge"><i class="fa-solid fa-gift"></i> ₹' + formatNum(cashback) + '</span></div></div>' +
+    '<div class="info-item"><div class="info-label">Payment Method</div><div class="info-value">' + renderPayBadge(o.payment_method) + '</div></div>' +
+    '<div class="info-item"><div class="info-label">Payment Status</div><div class="info-value">' + renderStatusBadge(o.payment_status || 'pending') + '</div></div>';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   STATUS UPDATE
+═══════════════════════════════════════════════════════════════════ */
+function updateOrderStatus() {
+  var newStatus = document.getElementById('newStatusSelect').value;
+  if (!newStatus) { toast('Select a status first', 'error'); return; }
+  var orderId = STATE.currentOrderId;
+
+  callAPI({
+    action:    'updateStoreOrderStatus',
+    orderId:   orderId,
+    newStatus: newStatus,
+    adminId:   STATE.session ? STATE.session.id : 0
+  }).then(function(res) {
+    if (res.success) {
+      // Update local state
+      var o = STATE.allOrders.find(function(x) { return x.id == orderId; });
+      if (o) {
+        o.status = newStatus;
+        buildTimeline(o);
+      }
+      applyFilters();
+      computeStats();
+      toast('Order status → ' + newStatus, 'success');
+    } else {
+      toast(res.message || 'Update failed', 'error');
+    }
+  }).catch(function(e) { toast('Error: ' + e.message, 'error'); });
+}
+
+function quickStatus(orderId) {
+  var o = STATE.allOrders.find(function(x) { return x.id == orderId; });
+  if (!o) return;
+  var newStatus = prompt('New status for #' + (o.order_number||orderId) + ':\n\npending / confirmed / processing / packed / ready to ship / shipped / out for delivery / delivered / cancelled / returned / refunded', o.status || 'pending');
+  if (!newStatus) return;
+  STATE.currentOrderId = orderId;
+  document.getElementById('newStatusSelect').value = newStatus.toLowerCase();
+  updateOrderStatus();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SHIPPING SAVE
+═══════════════════════════════════════════════════════════════════ */
+function saveShipping() {
+  var orderId = STATE.currentOrderId;
+  var data = {
+    tracking: document.getElementById('sh-tracking').value.trim(),
+    courier:  document.getElementById('sh-courier').value.trim(),
+    dispatch: document.getElementById('sh-dispatch').value,
+    expected: document.getElementById('sh-expected').value,
+    notes:    document.getElementById('sh-notes').value.trim()
+  };
+  STATE.shippingData[orderId] = data;
+  saveToLocal('shipping', STATE.shippingData);
+
+  // Update local order
+  var o = STATE.allOrders.find(function(x) { return x.id == orderId; });
+  if (o) { o._tracking = data.tracking; o._courier = data.courier; }
+
+  toast('Shipping details saved locally', 'success');
+  // Also update status to shipped if tracking provided
+  if (data.tracking && (!STATE.currentOrderData || (STATE.currentOrderData.status||'').toLowerCase() === 'packed')) {
+    if (confirm('Tracking number added. Update status to "Ready To Ship"?')) {
+      document.getElementById('newStatusSelect').value = 'ready to ship';
+      updateOrderStatus();
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BULK ACTIONS
+═══════════════════════════════════════════════════════════════════ */
+function toggleRow(el) {
+  var id = parseInt(el.getAttribute('data-id'));
+  if (el.checked) STATE.selectedIds.add(id);
+  else STATE.selectedIds.delete(id);
+  updateBulkBar();
+}
+
+function toggleSelectAll() {
+  var checked = document.getElementById('selectAll').checked;
+  STATE.filteredOrders.forEach(function(o) {
+    if (checked) STATE.selectedIds.add(o.id);
+    else STATE.selectedIds.delete(o.id);
+  });
+  renderOrdersTable();
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  var bar = document.getElementById('bulkBar');
+  var cnt = STATE.selectedIds.size;
+  setEl('bulkCount', cnt);
+  bar.classList.toggle('show', cnt > 0);
+}
+
+function clearBulk() {
+  STATE.selectedIds.clear();
+  document.getElementById('selectAll').checked = false;
+  renderOrdersTable();
+  updateBulkBar();
+}
+
+function bulkAction(newStatus) {
+  var ids = Array.from(STATE.selectedIds);
+  if (!ids.length) return;
+  if (!confirm('Update ' + ids.length + ' orders to "' + newStatus + '"?')) return;
+
+  var promises = ids.map(function(id) {
+    return callAPI({ action: 'updateStoreOrderStatus', orderId: id, newStatus: newStatus, adminId: STATE.session ? STATE.session.id : 0 });
+  });
+
+  Promise.all(promises).then(function(results) {
+    var ok = results.filter(function(r) { return r.success; }).length;
+    ids.forEach(function(id) {
+      var o = STATE.allOrders.find(function(x) { return x.id == id; });
+      if (o) o.status = newStatus;
+    });
+    applyFilters();
+    computeStats();
+    clearBulk();
+    toast(ok + ' orders updated to ' + newStatus, 'success');
+  }).catch(function(e) { toast('Bulk update failed: ' + e.message, 'error'); });
+}
+
+function bulkExport() {
+  var ids = Array.from(STATE.selectedIds);
+  var selected = STATE.allOrders.filter(function(o) { return ids.indexOf(o.id) > -1; });
+  downloadCSV(selected, 'selected-orders-' + today() + '.csv');
+  clearBulk();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SHIPPING PANEL
+═══════════════════════════════════════════════════════════════════ */
+function renderShippingPanel() {
+  var shippable = STATE.allOrders.filter(function(o) {
+    var s = (o.status||'').toLowerCase();
+    return s === 'packed' || s === 'ready to ship' || s === 'shipped' || s === 'out for delivery';
+  });
+
+  var body = document.getElementById('shippingBody');
+  if (!shippable.length) {
+    body.innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">🚚</div><div class="empty-title">No orders in shipping queue</div><div class="empty-desc">Packed or shipped orders appear here.</div></div></td></tr>';
+    return;
+  }
+
+  var html = '';
+  shippable.forEach(function(o) {
+    var sd = STATE.shippingData[o.id] || {};
+    html += '<tr>' +
+      '<td><div class="order-id">#' + esc(o.order_number||o.id) + '</div></td>' +
+      '<td>' + esc(o.user_name||'Unknown') + '<br><small style="color:var(--ink3)">' + esc(o.user_phone||'') + '</small></td>' +
+      '<td style="max-width:180px;font-size:12px">' + esc((o.address||'').substring(0,60)) + '</td>' +
+      '<td>' + renderStatusBadge(o.status) + '</td>' +
+      '<td><span style="font-family:var(--mono);font-size:12px;color:var(--brand)">' + esc(o._tracking || sd.tracking || '—') + '</span></td>' +
+      '<td>' + esc(o._courier || sd.courier || '—') + '</td>' +
+      '<td><button class="action-btn action-view" onclick="viewOrder(' + o.id + ')" title="View & Add Tracking"><i class="fa-solid fa-eye"></i></button></td>' +
+    '</tr>';
+  });
+  body.innerHTML = html;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════════════════════════════════ */
+function exportCSV() { downloadCSV(STATE.filteredOrders, 'orders-' + today() + '.csv'); }
+
+function downloadCSV(orders, filename) {
+  var headers = ['Order ID','Order Number','Date','Customer Name','Phone','Email','Wallet ID','Role','Product Types','Subtotal','Tax','Discount','Delivery','Grand Total','Wallet Used','Cashback','Payment Method','Payment Status','Order Status','Address','Tracking','Courier','Notes'];
+  var rows = orders.map(function(o) {
+    return [
+      o.id, o.order_number, o.order_date, o.user_name, o.user_phone||'', o.user_email||'',
+      o.wallet_id||'', o.user_role||'', (o._types||['NORMAL']).join('+'),
+      o.subtotal||0, o.tax||0, o.discount||0, o.delivery||0, o.grand_total||0,
+      o._walletUsed||0, o._cashbackEarned||0,
+      o.payment_method||'', o.payment_status||'', o.status||'',
+      '"' + String(o.address||'').replace(/"/g,'""') + '"',
+      o._tracking||'', o._courier||'',
+      '"' + String(o.notes||'').replace(/"/g,'""') + '"'
+    ].join(',');
+  });
+  var csv = [headers.join(',')].concat(rows).join('\n');
+  downloadFile(csv, filename, 'text/csv');
+  toast('CSV exported (' + orders.length + ' orders)', 'success');
+}
+
+function exportJSON() {
+  downloadFile(JSON.stringify(STATE.filteredOrders, null, 2), 'orders-' + today() + '.json', 'application/json');
+  toast('JSON exported', 'success');
+}
+
+function downloadFile(content, filename, type) {
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], {type:type}));
+  a.download = filename;
+  a.click();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PRINT
+═══════════════════════════════════════════════════════════════════ */
+function printOrders() {
+  var rows = STATE.filteredOrders.map(function(o) {
+    return '<tr><td>' + esc(o.order_number||o.id) + '</td><td>' + formatDate(o.order_date) + '</td><td>' + esc(o.user_name||'') + '</td><td>₹' + formatNum(o.grand_total) + '</td><td>' + esc(o.payment_method||'') + '</td><td>' + esc(o.status||'') + '</td></tr>';
+  }).join('');
+  var w = window.open('','_blank');
+  w.document.write('<html><head><title>Orders</title><style>body{font-family:sans-serif;font-size:12px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:6px;text-align:left}th{background:#f0f0f0}h2{color:#ff5f1f}</style></head><body><h2>Order List — ' + STATE.filteredOrders.length + ' orders</h2><table><thead><tr><th>Order#</th><th>Date</th><th>Customer</th><th>Amount</th><th>Payment</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></body></html>');
+  w.print();
+}
+
+function printOrderDetail() {
+  var o = STATE.currentOrderData;
+  if (!o) return;
+  var w = window.open('','_blank');
+  w.document.write('<html><head><title>Order #' + (o.order_number||o.id) + '</title><style>body{font-family:sans-serif;font-size:13px;padding:20px}h2{color:#ff5f1f;margin-bottom:8px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}.label{color:#777;font-size:11px;font-weight:600;text-transform:uppercase}.value{font-weight:600}</style></head><body><h2>Order #' + esc(o.order_number||o.id) + '</h2><p>Date: ' + formatDate(o.order_date) + ' | Status: ' + esc(o.status||'') + '</p><div class="grid"><div><div class="label">Customer</div><div class="value">' + esc(o.user_name||'') + '</div></div><div><div class="label">Phone</div><div class="value">' + esc(o.user_phone||'') + '</div></div><div><div class="label">Address</div><div class="value">' + esc(o.address||'') + '</div></div><div><div class="label">Amount</div><div class="value">₹' + formatNum(o.grand_total) + '</div></div></div><p><strong>Payment:</strong> ' + esc(o.payment_method||'') + ' | <strong>Wallet Used:</strong> ₹' + formatNum(o._walletUsed||0) + '</p></body></html>');
+  w.print();
+}
+
+function printSingleOrder(id) {
+  var o = STATE.allOrders.find(function(x) { return x.id == id; });
+  if (!o) return;
+  STATE.currentOrderData = o;
+  printOrderDetail();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODAL HELPERS
+═══════════════════════════════════════════════════════════════════ */
+function openModal(id) {
+  var el = document.getElementById(id);
+  el.style.display = 'flex';
+  requestAnimationFrame(function() { el.classList.add('open'); });
+}
+
+function closeModal(id) {
+  var el = document.getElementById(id);
+  el.classList.remove('open');
+  setTimeout(function() { el.style.display = 'none'; }, 250);
+}
+
+function openSetupModal() { openModal('setupModal'); }
+
+function modalTab(el, panelId) {
+  var modal = el.closest('.modal') || document.getElementById('orderModal');
+  modal.querySelectorAll('.tabs .tab').forEach(function(t) { t.classList.remove('active'); });
+  modal.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('active'); });
+  el.classList.add('active');
+  var panel = modal.querySelector('#' + panelId);
+  if (panel) panel.classList.add('active');
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(function(el) {
+  el.addEventListener('click', function(e) {
+    if (e.target === el && el.id !== 'setupModal') closeModal(el.id);
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   PANEL NAVIGATION
+═══════════════════════════════════════════════════════════════════ */
+function showPanel(name) {
+  document.querySelectorAll('.panel.active[id^="panel-"]').forEach(function(p) { p.classList.remove('active'); });
+  var p = document.getElementById('panel-' + name);
+  if (p) p.classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+
+  var titles = { dashboard:'Dashboard', orders:'All Orders', shipping:'Shipping', support:'Support' };
+  setEl('topbarTitle', titles[name] || name.charAt(0).toUpperCase()+name.slice(1));
+  setEl('topbarSub', 'Order Management System');
+
+  if (name === 'shipping') renderShippingPanel();
+  closeSidebar();
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR MOBILE
+═══════════════════════════════════════════════════════════════════ */
+function toggleSidebar() {
+  var sb = document.getElementById('sidebar');
+  var ov = document.getElementById('sidebarOverlay');
+  var open = sb.classList.toggle('open');
+  ov.style.display = open ? 'block' : 'none';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').style.display = 'none';
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DROPDOWN
+═══════════════════════════════════════════════════════════════════ */
+function toggleDropdown(id) {
+  var el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+function closeDropdown(id) {
+  document.getElementById(id).classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  document.querySelectorAll('.dropdown-wrap.open').forEach(function(d) {
+    if (!d.contains(e.target)) d.classList.remove('open');
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   LOADING STATES
+═══════════════════════════════════════════════════════════════════ */
+function setOrdersLoading() {
+  document.getElementById('ordersBody').innerHTML =
+    '<tr><td colspan="10"><div class="loader-wrap"><div class="loader-spinner"></div><div class="loader-text">Fetching orders from Google Sheets…</div></div></td></tr>';
+}
+function showOrdersError(msg) {
+  document.getElementById('ordersBody').innerHTML =
+    '<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Could not load orders</div><div class="empty-desc">' + esc(msg) + '<br><br><button class="topbar-btn btn-primary" onclick="refreshAll()">Retry</button></div></div></td></tr>';
+}
+var _toastLoading;
+function showToastLoading(msg) { toast(msg); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════════════ */
+function toast(msg, type) {
+  var c = document.getElementById('toast-container');
+  var icons = {success:'fa-circle-check',error:'fa-circle-xmark',warning:'fa-triangle-exclamation'};
+  var el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.innerHTML = '<i class="fa-solid ' + (icons[type]||'fa-info-circle') + '"></i><span>' + esc(msg) + '</span>';
+  c.appendChild(el);
+  setTimeout(function() {
+    el.classList.add('toast-out');
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 220);
+  }, 3000);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UTILITIES
+═══════════════════════════════════════════════════════════════════ */
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function setEl(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+function formatNum(n) { var v = parseFloat(n)||0; return v.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function formatDate(d) {
+  if (!d) return '—';
+  try {
+    var dt = new Date(d);
+    if (isNaN(dt)) return String(d).substring(0,10);
+    return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  } catch(e) { return String(d).substring(0,10); }
+}
+function formatDateTime(d) {
+  if (!d) return '—';
+  try {
+    var dt = new Date(d);
+    if (isNaN(dt)) return String(d).substring(0,16);
+    return dt.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) + ' ' + dt.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  } catch(e) { return String(d).substring(0,16); }
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', function() {
+  loadConfig();
+  if (STATE.scriptUrl) {
+    // Auto-authenticate on load
+    document.getElementById('notConfiguredBanner').style.display = 'none';
+    authenticate();
+  } else {
+    openSetupModal();
+    // Show demo data so UI is not blank
+    loadDemoData();
+  }
+});
+
+/* ─── Demo / Placeholder data ─────────────────────────────────── */
+function loadDemoData() {
+  var now = new Date();
+  var d = function(days) { var t = new Date(now); t.setDate(t.getDate()-days); return t.toISOString(); };
+  STATE.allOrders = [
+    {id:1001,order_number:'PUB20250601-0001',user_id:1,user_name:'Rahul Sharma',user_phone:'9876543210',user_email:'rahul@example.com',wallet_id:'9876543210ABCD',user_role:'public',order_date:d(0),status:'pending',subtotal:1200,tax:60,discount:0,delivery:50,grand_total:1310,payment_method:'cod',payment_status:'unpaid',address:'12 MG Road, Kolkata 700001',notes:'Please pack carefully',_types:['NORMAL'],_typeLabel:'NORMAL',_walletUsed:0,_cashbackEarned:0,_coupon:'',_tracking:'',_courier:''},
+    {id:1002,order_number:'PUB20250601-0002',user_id:2,user_name:'Priya Sen',user_phone:'8765432109',user_email:'priya@example.com',wallet_id:'8765432109EFGH',user_role:'retailer',order_date:d(1),status:'processing',subtotal:3400,tax:170,discount:200,delivery:0,grand_total:3370,payment_method:'wallet',payment_status:'paid',address:'45 Park Street, Kolkata 700016',notes:'wallet_used:500',_types:['GLASS','COVER'],_typeLabel:'MIXED',_walletUsed:500,_cashbackEarned:67.40,_coupon:'SAVE200',_tracking:'',_courier:''},
+    {id:1003,order_number:'PUB20250531-0003',user_id:3,user_name:'Amit Verma',user_phone:'7654321098',user_email:'amit@example.com',wallet_id:'7654321098IJKL',user_role:'distributor',order_date:d(2),status:'shipped',subtotal:8900,tax:445,discount:0,delivery:100,grand_total:9445,payment_method:'online',payment_status:'paid',address:'78 Salt Lake, Kolkata 700091',notes:'',_types:['NORMAL'],_typeLabel:'NORMAL',_walletUsed:0,_cashbackEarned:0,_coupon:'',_tracking:'DTD123456789IN',_courier:'DTDC'},
+    {id:1004,order_number:'PUB20250530-0004',user_id:4,user_name:'Sneha Roy',user_phone:'6543210987',user_email:'sneha@example.com',wallet_id:'6543210987MNOP',user_role:'public',order_date:d(3),status:'delivered',subtotal:560,tax:28,discount:0,delivery:40,grand_total:628,payment_method:'cod',payment_status:'paid',address:'22 Howrah Bridge Road, Howrah 711101',notes:'',_types:['COVER'],_typeLabel:'COVER',_walletUsed:0,_cashbackEarned:0,_coupon:'',_tracking:'DLV987654321IN',_courier:'Delhivery'},
+    {id:1005,order_number:'PUB20250529-0005',user_id:5,user_name:'Ranjit Das',user_phone:'5432109876',user_email:'ranjit@example.com',wallet_id:'5432109876QRST',user_role:'public',order_date:d(5),status:'cancelled',subtotal:2200,tax:110,discount:0,delivery:80,grand_total:2390,payment_method:'wallet',payment_status:'refunded',address:'90 Tollygunge, Kolkata 700033',notes:'wallet_used:2390',_types:['GLASS'],_typeLabel:'GLASS',_walletUsed:2390,_cashbackEarned:0,_coupon:'',_tracking:'',_courier:''},
+  ];
+  computeStats();
+  applyFilters();
+  toast('Demo data loaded — connect your API to see live orders', 'warning');
+}
+
+console.log('%c OrderMgr v1.0 ', 'background:#ff5f1f;color:#fff;padding:4px 12px;border-radius:6px;font-weight:700;font-size:14px');
+console.log('Built for Wanza Marketing Ecommerce System');
+console.log('API Functions used: adminGetAllStoreOrders, updateStoreOrderStatus, getStoreOrderDetail');
+</script>
+</body>
+</html>
