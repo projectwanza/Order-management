@@ -1063,6 +1063,10 @@ tbody td.check-col{padding:12px 14px}
       <div class="panel" id="tab-status">
         <div class="modal-section">
           <div class="modal-section-title">Update Order Status</div>
+          <div id="statusBackendWarning" style="display:none;margin-bottom:14px;padding:14px;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--radius-sm);font-size:13px;color:#7f1d1d;display:flex;align-items:center;gap:8px">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>This feature requires backend support.</span>
+          </div>
           <div class="status-update-wrap">
             <select class="status-select-lg" id="newStatusSelect">
               <option value="">Select new status…</option>
@@ -1133,6 +1137,10 @@ tbody td.check-col{padding:12px 14px}
 
       <!-- Financial Tab -->
       <div class="panel" id="tab-financial">
+        <div id="financialBackendWarning" style="display:none;margin-bottom:14px;padding:14px;background:#fee2e2;border:1px solid #fca5a5;border-radius:var(--radius-sm);font-size:13px;color:#7f1d1d;display:flex;align-items:center;gap:8px">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>This feature requires backend support.</span>
+        </div>
         <div class="modal-section">
           <div class="modal-section-title">Financial Breakdown</div>
           <div class="totals-box" id="financialBreakdown"></div>
@@ -1639,12 +1647,21 @@ function viewOrder(orderId) {
   document.getElementById('newStatusSelect').value = (o.status||'').toLowerCase();
 
   // Shipping
+  // Shipping — check localStorage first, then every possible field name the order object might carry
   var sd = STATE.shippingData[orderId] || {};
-  document.getElementById('sh-tracking').value = sd.tracking || o._tracking || '';
-  document.getElementById('sh-courier').value  = sd.courier  || o._courier  || '';
-  document.getElementById('sh-dispatch').value = sd.dispatch || '';
-  document.getElementById('sh-expected').value = sd.expected || '';
-  document.getElementById('sh-notes').value    = sd.notes    || '';
+  var trackingVal = sd.tracking || o._tracking || o.tracking_number || o.tracking || o.awb || o.awb_number || '';
+  var courierVal  = sd.courier  || o._courier  || o.courier_name   || o.courier  || o.shipping_partner || '';
+  var dispatchVal = sd.dispatch || o.dispatch_date || o.shipped_date || '';
+  var expectedVal = sd.expected || o.expected_delivery || o.delivery_date || o.eta || '';
+  var notesVal    = sd.notes    || o.shipping_notes || o.shipping_remark || '';
+
+  console.log('Shipping Tab - source data:', { localStorage: sd, orderFields: o, resolved: { trackingVal, courierVal, dispatchVal, expectedVal, notesVal } });
+
+  document.getElementById('sh-tracking').value = trackingVal;
+  document.getElementById('sh-courier').value  = courierVal;
+  document.getElementById('sh-dispatch').value = dispatchVal;
+  document.getElementById('sh-expected').value = expectedVal;
+  document.getElementById('sh-notes').value    = notesVal;
 
   // Timeline
   buildTimeline(o);
@@ -1681,41 +1698,60 @@ function loadOrderItems(orderId, o) {
 
         renderItemsTable(items);
       } else {
-        body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">Item details not available</td></tr>';
+        console.warn('Items tab: no data field in API response', res);
+        body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">No data received from backend</td></tr>';
       }
     })
-    .catch(function() {
-      body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">Could not load items</td></tr>';
+    .catch(function(e) {
+      console.error('Items tab: API call failed', e);
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">No data received from backend</td></tr>';
     });
 }
 
 function renderItemsTable(items) {
   var body = document.getElementById('modalItemsBody');
+  console.log('Items Tab - raw items array:', items);
   if (!items || !items.length) {
-    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">No items found</td></tr>';
+    body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">No data received from backend</td></tr>';
     return;
   }
   var html = '';
   items.forEach(function(it, idx) {
-    var tn = it.product_type || 'NORMAL';
+    console.log('Items Tab - item[' + idx + ']:', it);
+    var tn       = it.product_type || it.type || 'NORMAL';
+    var name     = it.product_name || it.display_name || it.name || 'Product';
+    var variant  = it.variant_name || it.variant || it.size || '';
+    var note     = it.item_notes || it.note || it.remark || '';
+    var sku      = it.sku || it.product_id || it.item_id || '—';
+    var img      = it.image_url || it.img || it.image || it.photo || '';
+    var qty      = it.qty || it.quantity || 1;
+    var price    = it.unit_price || it.price || it.rate || 0;
+    var tax      = it.tax_amount || it.gst || it.tax || 0;
+    var total    = it.line_total || it.total || it.amount || (qty * price) || 0;
+    var statusLbl = it.item_status_label || it.purchase_status_label || '';
+
     html += '<tr>' +
       '<td style="color:var(--ink3);font-size:12px">' + (idx+1) + '</td>' +
-      '<td><div class="item-name">' + esc(it.display_name || it.product_name || 'Product') + '</div>' +
-        (it.variant_name ? '<div class="item-variant">Variant: ' + esc(it.variant_name) + '</div>' : '') +
-        (it.item_notes   ? '<div class="item-variant">Note: ' + esc(it.item_notes) + '</div>' : '') +
-        '<div class="item-variant">SKU: ' + esc(it.sku||'—') + '</div>' +
+      '<td>' +
+        (img ? '<img src="' + esc(img) + '" style="width:36px;height:36px;object-fit:cover;border-radius:6px;margin-bottom:4px" onerror="this.style.display=\'none\'"/>' : '') +
+        '<div class="item-name">' + esc(name) + '</div>' +
+        (variant ? '<div class="item-variant">Variant: ' + esc(variant) + '</div>' : '') +
+        (note    ? '<div class="item-variant">Note: ' + esc(note) + '</div>' : '') +
+        (statusLbl ? '<div class="item-variant">Status: ' + esc(statusLbl) + '</div>' : '') +
+        '<div class="item-variant">SKU: ' + esc(String(sku)) + '</div>' +
       '</td>' +
       '<td>' + renderTypeBadge(tn) + '</td>' +
-      '<td style="font-weight:700">' + (it.qty||1) + '</td>' +
-      '<td>₹' + formatNum(it.unit_price||it.price||0) + '</td>' +
-      '<td style="color:var(--ink3)">₹' + formatNum(it.tax_amount||0) + '</td>' +
-      '<td style="font-weight:700">₹' + formatNum(it.line_total||it.total||0) + '</td>' +
+      '<td style="font-weight:700">' + qty + '</td>' +
+      '<td>₹' + formatNum(price) + '</td>' +
+      '<td style="color:var(--ink3)">₹' + formatNum(tax) + '</td>' +
+      '<td style="font-weight:700">₹' + formatNum(total) + '</td>' +
     '</tr>';
   });
   body.innerHTML = html;
 }
 
 function buildTimeline(o) {
+  console.log('Timeline Tab - Order Object:', o);
   var s = (o.status||'pending').toLowerCase();
   var ORDER = ['pending','confirmed','processing','packed','ready to ship','shipped','out for delivery','delivered'];
   var BAD   = ['cancelled','returned','refunded'];
@@ -1725,6 +1761,10 @@ function buildTimeline(o) {
   var createdDate = formatDateTime(o.order_date);
   entries.push({label:'Order Created', time:createdDate, desc:'Customer placed order #' + (o.order_number||o.id), cls:'active'});
   entries.push({label:'Payment ' + (o.payment_status==='paid'?'Completed':'Pending'), time:createdDate, desc:'Method: ' + (o.payment_method||'COD') + (o._walletUsed>0?' (₹'+o._walletUsed.toFixed(2)+' wallet)':''), cls:o.payment_status==='paid'?'success':'active'});
+
+  if (o.notes) {
+    entries.push({label:'Order Note', time:createdDate, desc:String(o.notes), cls:''});
+  }
 
   var currentIdx = ORDER.indexOf(s);
   ORDER.forEach(function(step, i) {
@@ -1754,6 +1794,23 @@ function buildTimeline(o) {
 function buildFinancial(o) {
   var fb = document.getElementById('financialBreakdown');
   var wi = document.getElementById('walletInfo');
+  var warn = document.getElementById('financialBackendWarning');
+
+  var hasDetail = (typeof o.subtotal !== 'undefined') || (typeof o.tax !== 'undefined') ||
+                  (typeof o.discount !== 'undefined') || (typeof o._walletUsed !== 'undefined') ||
+                  (typeof o._cashbackEarned !== 'undefined');
+
+  console.log('Financial Tab - Order Object:', o, '| Detail fields present:', hasDetail);
+
+  if (!hasDetail) {
+    if (warn) warn.style.display = 'flex';
+    fb.innerHTML = '<div class="total-row"><span class="total-label">Grand Total</span><span class="total-value">₹' + formatNum(o.grand_total||0) + '</span></div>';
+    wi.innerHTML =
+      '<div class="info-item"><div class="info-label">Payment Method</div><div class="info-value">' + renderPayBadge(o.payment_method) + '</div></div>' +
+      '<div class="info-item"><div class="info-label">Payment Status</div><div class="info-value">' + renderStatusBadge(o.payment_status || 'pending') + '</div></div>';
+    return;
+  }
+  if (warn) warn.style.display = 'none';
 
   var sub      = parseFloat(o.subtotal||0);
   var tax      = parseFloat(o.tax||0);
@@ -1794,6 +1851,14 @@ function updateOrderStatus() {
     newStatus: newStatus,
     adminId:   STATE.session ? STATE.session.id : 0
   }).then(function(res) {
+    console.log('Update Status Tab - API Response:', res);
+    var warnEl = document.getElementById('statusBackendWarning');
+    if (res && res.message && /unknown action/i.test(res.message)) {
+      if (warnEl) warnEl.style.display = 'flex';
+      toast('This feature requires backend support.', 'error');
+      return;
+    }
+    if (warnEl) warnEl.style.display = 'none';
     if (res.success) {
       // Update local state
       var o = STATE.allOrders.find(function(x) { return x.id == orderId; });
@@ -1834,13 +1899,14 @@ function quickStatus(orderId) {
           (m.old_qty != null && m.new_qty != null) ? ('Qty ' + m.old_qty + ' → ' + m.new_qty) : '',
           m.remark || ''
         ].filter(Boolean).join(' · ');
-        return 'div class="tl-item"' +
-          'div class="tl-dot active"div' +
-          'div class="tl-status"' + esc(label) + 'div' +
-          'div class="tl-time"' + esc(m.created_at || '') + ' · ' + esc(m.admin_name || 'Admin') + 'div' +
-          (desc ? 'div class="tl-desc"' + esc(desc) + 'div' : '') +
-        'div';
+        return '<div class="tl-item">' +
+          '<div class="tl-dot active"></div>' +
+          '<div class="tl-status">' + esc(label) + '</div>' +
+          '<div class="tl-time">' + esc(m.created_at || '') + ' · ' + esc(m.admin_name || 'Admin') + '</div>' +
+          (desc ? '<div class="tl-desc">' + esc(desc) + '</div>' : '') +
+        '</div>';
       }).join('');
+      console.log('Timeline Tab - modification entries appended:', res.data.length);
       tl.innerHTML += extra;
     })
     .catch(function(e) { console.warn('Modification history load failed', e); });
