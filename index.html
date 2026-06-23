@@ -1665,8 +1665,9 @@ function loadOrderItems(orderId, o) {
   var body = document.getElementById('modalItemsBody');
   body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--ink3);padding:20px">Loading items…</td></tr>';
 
-  callAPI({ action: 'getStoreOrderDetail', orderId: orderId, userId: STATE.session ? STATE.session.id : 0, userRole: 'admin' })
+  callAPI({ action: 'getOrderItemsWithStatus', orderId: orderId })
     .then(function(res) {
+      console.log('Order Items API Response:', res);
       if (res.success && res.data && res.data.items) {
         var items = res.data.items;
         // Update types from actual items
@@ -1798,7 +1799,8 @@ function updateOrderStatus() {
       var o = STATE.allOrders.find(function(x) { return x.id == orderId; });
       if (o) {
         o.status = newStatus;
-        buildTimeline(o);
+          buildTimeline(o);
+  loadModificationHistory(orderId);
       }
       applyFilters();
       computeStats();
@@ -1817,6 +1819,31 @@ function quickStatus(orderId) {
   STATE.currentOrderId = orderId;
   document.getElementById('newStatusSelect').value = newStatus.toLowerCase();
   updateOrderStatus();
+}
+   function loadModificationHistory(orderId) {
+  callAPI({ action: 'getOrderModificationHistory', orderId: orderId })
+    .then(function(res) {
+      console.log('Modification History:', res);
+      if (!res.success || !res.data || !res.data.length) return; // nothing to add, leave computed timeline as-is
+      var tl = document.getElementById('orderTimeline');
+      var extra = res.data.map(function(m) {
+        var label = m.action_type ? m.action_type.replace(/_/g, ' ') : 'Order Modified';
+        var desc = [
+          m.added_product ? 'Added: ' + m.added_product : '',
+          m.removed_product ? 'Removed: ' + m.removed_product : '',
+          (m.old_qty != null && m.new_qty != null) ? ('Qty ' + m.old_qty + ' → ' + m.new_qty) : '',
+          m.remark || ''
+        ].filter(Boolean).join(' · ');
+        return 'div class="tl-item"' +
+          'div class="tl-dot active"div' +
+          'div class="tl-status"' + esc(label) + 'div' +
+          'div class="tl-time"' + esc(m.created_at || '') + ' · ' + esc(m.admin_name || 'Admin') + 'div' +
+          (desc ? 'div class="tl-desc"' + esc(desc) + 'div' : '') +
+        'div';
+      }).join('');
+      tl.innerHTML += extra;
+    })
+    .catch(function(e) { console.warn('Modification history load failed', e); });
 }
 
 /* ═══════════════════════════════════════════════════════════════════
